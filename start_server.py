@@ -1,4 +1,4 @@
-#!/usr/bin/env python3 222
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 实验测试平台启动脚本
