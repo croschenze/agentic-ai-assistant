@@ -528,7 +528,7 @@ class ParticipantInterface {
                 <span class="file-icon">📎</span>
                 <span class="file-name">${file.name}</span>
                 <span class="file-size">(${this.formatFileSize(file.size)})</span>
-                <button class="remove-file" onclick="participantChat.removePendingFile(${index})">
+                <button class="remove-file" onclick="participantInterface.removePendingFile(${index})">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -1192,7 +1192,208 @@ class ParticipantInterface {
 // 页面加载完成后初始化
 document.addEventListener('DOMContentLoaded', () => {
     window.participantInterface = new ParticipantInterface();
+    initializeControlPanel();
 });
+
+// 初始化控制面板
+function initializeControlPanel() {
+    setupModeToggle();
+    setupSliders();
+    setupSwitches();
+    setupImageSettings();
+}
+
+// 设置模式切换
+function setupModeToggle() {
+    const modeToggleBtn = document.getElementById('mode-toggle-btn');
+    const modeTitle = document.getElementById('settings-mode-title');
+    const modeIcon = document.getElementById('mode-toggle-icon');
+    const textSettings = document.getElementById('text-settings');
+    const imageSettings = document.getElementById('image-settings');
+    
+    let isTextMode = true;
+    
+    modeToggleBtn.addEventListener('click', function() {
+        isTextMode = !isTextMode;
+        
+        if (isTextMode) {
+            modeTitle.textContent = '文本对话设置';
+            modeIcon.innerHTML = `
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <circle cx="9" cy="9" r="2"></circle>
+                <path d="M21 15l-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path>
+            `;
+            textSettings.classList.add('active');
+            imageSettings.classList.remove('active');
+        } else {
+            modeTitle.textContent = '图片编辑设置';
+            modeIcon.innerHTML = `
+                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                <polyline points="14,2 14,8 20,8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10,9 9,9 8,9"></polyline>
+            `;
+            textSettings.classList.remove('active');
+            imageSettings.classList.add('active');
+        }
+    });
+}
+
+// 设置滑块
+function setupSliders() {
+    // 严谨/创意滑块
+    const strictCreativeSlider = document.getElementById('strict-creative-slider');
+    const strictCreativeValue = document.getElementById('strict-creative-value');
+    
+    strictCreativeSlider.addEventListener('input', function() {
+        const value = parseInt(this.value);
+        const strictPercent = 100 - value;
+        const creativePercent = value;
+        strictCreativeValue.textContent = `严谨${strictPercent}% 创意${creativePercent}%`;
+    });
+    
+    // 简明/深思滑块
+    const simpleProfoundSlider = document.getElementById('simple-profound-slider');
+    const simpleProfoundValue = document.getElementById('simple-profound-value');
+    
+    simpleProfoundSlider.addEventListener('input', function() {
+        const value = parseInt(this.value);
+        if (value < 25) {
+            simpleProfoundValue.textContent = '简明';
+        } else if (value > 75) {
+            simpleProfoundValue.textContent = '深思';
+        } else {
+            simpleProfoundValue.textContent = '平衡';
+        }
+    });
+}
+
+// 设置开关
+function setupSwitches() {
+    const internetToggle = document.getElementById('internet-toggle');
+    const internetDescription = document.getElementById('internet-description');
+    
+    internetToggle.addEventListener('change', function() {
+        if (this.checked) {
+            internetDescription.textContent = '使用网络搜索';
+        } else {
+            internetDescription.textContent = '使用本地知识库';
+        }
+    });
+}
+
+// 设置图片编辑功能
+function setupImageSettings() {
+    // 等比例锁定
+    const aspectRatioLock = document.getElementById('aspect-ratio-lock');
+    const widthInput = document.getElementById('width-input');
+    const heightInput = document.getElementById('height-input');
+    const dimensionDescription = document.getElementById('dimension-description');
+    
+    let isLocked = true;
+    let aspectRatio = 1; // 1024/1024
+    
+    aspectRatioLock.addEventListener('click', function() {
+        isLocked = !isLocked;
+        
+        if (isLocked) {
+            this.classList.add('locked');
+            this.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+            `;
+            widthInput.disabled = true;
+            heightInput.disabled = true;
+            dimensionDescription.textContent = '等比例锁定';
+        } else {
+            this.classList.remove('locked');
+            this.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 5 0v4"></path>
+                </svg>
+            `;
+            widthInput.disabled = false;
+            heightInput.disabled = false;
+            dimensionDescription.textContent = '自由调节';
+        }
+    });
+    
+    // 文件大小预设按钮
+    const presetButtons = document.querySelectorAll('.preset-btn');
+    const fileSizeInput = document.getElementById('file-size-input');
+    
+    presetButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const size = this.getAttribute('data-size');
+            fileSizeInput.value = size;
+        });
+    });
+    
+    // 转换模式按钮
+    const transformModeBtn = document.getElementById('transform-mode-btn');
+    transformModeBtn.addEventListener('click', function() {
+        // 这里可以添加转换模式的逻辑
+        console.log('切换到编辑模式');
+    });
+    
+    // 局部修改按钮
+    const localModifyBtn = document.getElementById('local-modify-btn');
+    const editControls = document.getElementById('edit-controls');
+    
+    localModifyBtn.addEventListener('click', function() {
+        const isVisible = editControls.style.display !== 'none';
+        editControls.style.display = isVisible ? 'none' : 'block';
+        
+        if (!isVisible) {
+            this.textContent = '退出编辑';
+            this.style.background = 'linear-gradient(135deg, #dc3545, #c82333)';
+        } else {
+            this.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M15 4V2a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v2"></path>
+                    <path d="M7 4h10l4 6s-1 6-4 6H7l-4-6s1-6 4-6Z"></path>
+                </svg>
+                选择修改区域
+            `;
+            this.style.background = 'linear-gradient(135deg, #fd7e14, #e83e8c)';
+        }
+    });
+    
+    // 编辑工具按钮
+    const zoomInBtn = document.getElementById('zoom-in-btn');
+    const zoomOutBtn = document.getElementById('zoom-out-btn');
+    const undoBtn = document.getElementById('undo-btn');
+    const saveBtn = document.getElementById('save-btn');
+    
+    zoomInBtn.addEventListener('click', function() {
+        console.log('放大图片');
+    });
+    
+    zoomOutBtn.addEventListener('click', function() {
+        console.log('缩小图片');
+    });
+    
+    undoBtn.addEventListener('click', function() {
+        console.log('撤回操作');
+    });
+    
+    saveBtn.addEventListener('click', function() {
+        console.log('保存修改');
+        editControls.style.display = 'none';
+        localModifyBtn.innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M15 4V2a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v2"></path>
+                <path d="M7 4h10l4 6s-1 6-4 6H7l-4-6s1-6 4-6Z"></path>
+            </svg>
+            选择修改区域
+        `;
+        localModifyBtn.style.background = 'linear-gradient(135deg, #fd7e14, #e83e8c)';
+    });
+}
 
 // 页面卸载时清理资源
 window.addEventListener('beforeunload', () => {
