@@ -108,47 +108,87 @@
             
             <!-- 设置模块容器 -->
             <div class="settings-modules">
-                <!-- 文本对话设置模块 -->
-                <div id="text-settings" class="settings-module active">
+                <!-- AI 性格设置模块 -->
+                <div id="ai-personality-settings" class="settings-module active">
                     <div class="setting-group">
-                        <label class="setting-label">严谨/创意滑块</label>
+                        <label class="setting-label">Creativity</label>
                         <div class="slider-container">
                             <div class="slider-labels">
                                 <span>严谨</span>
                                 <span>创意</span>
                             </div>
                             <div class="slider-wrapper">
-                                <input type="range" id="strict-creative-slider" class="slider" min="0" max="100" value="50">
+                                <input type="range" id="creativity-slider" class="slider" min="0" max="10" value="5" step="1">
+                                <div class="slider-ticks">
+                                    <span class="tick"></span>
+                                    <span class="tick"></span>
+                                    <span class="tick"></span>
+                                    <span class="tick"></span>
+                                    <span class="tick"></span>
+                                    <span class="tick"></span>
+                                    <span class="tick"></span>
+                                    <span class="tick"></span>
+                                    <span class="tick"></span>
+                                    <span class="tick"></span>
+                                    <span class="tick"></span>
+                                </div>
                             </div>
-                            <div class="slider-value" id="strict-creative-value">严谨50% 创意50%</div>
+                            <div class="slider-value" id="creativity-value">5</div>
                         </div>
                     </div>
                     
                     <div class="setting-group">
-                        <label class="setting-label">简明/深思滑块</label>
+                        <label class="setting-label">Personality</label>
                         <div class="slider-container">
                             <div class="slider-labels">
-                                <span>简明</span>
-                                <span>深思</span>
+                                <span>沉着</span>
+                                <span>活泼</span>
                             </div>
                             <div class="slider-wrapper">
-                                <input type="range" id="simple-profound-slider" class="slider" min="0" max="100" value="50">
+                                <input type="range" id="personality-slider" class="slider" min="0" max="10" value="5" step="1">
+                                <div class="slider-ticks">
+                                    <span class="tick"></span>
+                                    <span class="tick"></span>
+                                    <span class="tick"></span>
+                                    <span class="tick"></span>
+                                    <span class="tick"></span>
+                                    <span class="tick"></span>
+                                    <span class="tick"></span>
+                                    <span class="tick"></span>
+                                    <span class="tick"></span>
+                                    <span class="tick"></span>
+                                    <span class="tick"></span>
+                                </div>
                             </div>
-                            <div class="slider-value" id="simple-profound-value">平衡</div>
+                            <div class="slider-value" id="personality-value">5</div>
                         </div>
                     </div>
                     
                     <div class="setting-group">
-                        <div class="switch-container">
-                            <label class="setting-label" for="internet-toggle">是否联网</label>
-                            <div class="switch-wrapper">
-                                <input type="checkbox" id="internet-toggle" class="switch-input">
-                                <label for="internet-toggle" class="switch-label">
-                                    <span class="switch-slider"></span>
-                                </label>
+                        <label class="setting-label">Working Style</label>
+                        <div class="slider-container">
+                            <div class="slider-labels">
+                                <span>执行者</span>
+                                <span>主导者</span>
                             </div>
+                            <div class="slider-wrapper">
+                                <input type="range" id="workstyle-slider" class="slider" min="0" max="10" value="5" step="1">
+                                <div class="slider-ticks">
+                                    <span class="tick"></span>
+                                    <span class="tick"></span>
+                                    <span class="tick"></span>
+                                    <span class="tick"></span>
+                                    <span class="tick"></span>
+                                    <span class="tick"></span>
+                                    <span class="tick"></span>
+                                    <span class="tick"></span>
+                                    <span class="tick"></span>
+                                    <span class="tick"></span>
+                                    <span class="tick"></span>
+                                </div>
+                            </div>
+                            <div class="slider-value" id="workstyle-value">5</div>
                         </div>
-                        <div class="switch-description" id="internet-description">使用本地知识库</div>
                     </div>
                 </div>
                 

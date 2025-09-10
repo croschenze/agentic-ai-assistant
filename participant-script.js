@@ -31,7 +31,21 @@ class ParticipantInterface {
                 sessionIdPlaceholder: 'Enter Session ID',
                 sessionNotFound: 'Session not found, please check the Session ID',
                 enterSessionId: 'Please enter Session ID',
-                joinedSession: 'Successfully joined session:'
+                joinedSession: 'Successfully joined session:',
+                // 控制面板翻译
+                controlPanel: 'Control Panel',
+                aiPersonalitySettings: 'AI Personality Settings',
+                textDialogSettings: 'Text Dialog Settings',
+                imageEditSettings: 'Image Edit Settings',
+                creativity: 'Creativity',
+                personality: 'Personality',
+                workingStyle: 'Working Style',
+                rigor: 'Rigor',
+                creative: 'Creative',
+                calm: 'Calm',
+                energetic: 'Energetic',
+                executor: 'Executor',
+                initiator: 'Initiator'
             },
             zh: {
                 title: 'AI 助手',
@@ -58,7 +72,21 @@ class ParticipantInterface {
                 sessionIdPlaceholder: '输入会话ID',
                 sessionNotFound: '会话不存在，请检查会话ID是否正确',
                 enterSessionId: '请输入会话ID',
-                joinedSession: '成功加入会话:'
+                joinedSession: '成功加入会话:',
+                // 控制面板翻译
+                controlPanel: '控制面板',
+                aiPersonalitySettings: 'AI 性格设置',
+                textDialogSettings: '文本对话设置',
+                imageEditSettings: '图片编辑设置',
+                creativity: '创意指数',
+                personality: '性格特质',
+                workingStyle: '工作风格',
+                rigor: '严谨',
+                creative: '创意',
+                calm: '沉着',
+                energetic: '活泼',
+                executor: '执行',
+                initiator: '主导'
             }
         };
         
@@ -928,6 +956,68 @@ class ParticipantInterface {
          if (this.sessionJoinBtn) {
              this.sessionJoinBtn.textContent = this.t('joinSession');
          }
+         
+         // 更新控制面板语言
+         this.updateControlPanelLanguage();
+    }
+    
+    // 更新控制面板语言
+    updateControlPanelLanguage() {
+        // 更新控制面板标题
+        const controlPanelTitle = document.querySelector('.control-panel h2');
+        if (controlPanelTitle) {
+            controlPanelTitle.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"></path>
+                </svg>
+                ${this.t('controlPanel')}
+            `;
+        }
+        
+        // 更新模式标题
+        const modeTitle = document.getElementById('settings-mode-title');
+        if (modeTitle) {
+            // 检查当前是否为文本模式（通过检查active类）
+            const textSettings = document.getElementById('ai-personality-settings');
+            const isTextMode = textSettings && textSettings.classList.contains('active');
+            modeTitle.textContent = isTextMode ? this.t('aiPersonalitySettings') : this.t('imageEditSettings');
+        }
+        
+        // 更新滑块标签
+        const creativityLabel = document.querySelector('#creativity-slider').closest('.setting-group').querySelector('.setting-label');
+        if (creativityLabel) {
+            creativityLabel.textContent = this.t('creativity');
+        }
+        
+        const personalityLabel = document.querySelector('#personality-slider').closest('.setting-group').querySelector('.setting-label');
+        if (personalityLabel) {
+            personalityLabel.textContent = this.t('personality');
+        }
+        
+        const workstyleLabel = document.querySelector('#workstyle-slider').closest('.setting-group').querySelector('.setting-label');
+        if (workstyleLabel) {
+            workstyleLabel.textContent = this.t('workingStyle');
+        }
+        
+        // 更新滑块左右标签
+        const creativityLabels = document.querySelector('#creativity-slider').closest('.slider-container').querySelectorAll('.slider-labels span');
+        if (creativityLabels.length >= 2) {
+            creativityLabels[0].textContent = this.t('rigor');
+            creativityLabels[1].textContent = this.t('creative');
+        }
+        
+        const personalityLabels = document.querySelector('#personality-slider').closest('.slider-container').querySelectorAll('.slider-labels span');
+        if (personalityLabels.length >= 2) {
+            personalityLabels[0].textContent = this.t('calm');
+            personalityLabels[1].textContent = this.t('energetic');
+        }
+        
+        const workstyleLabels = document.querySelector('#workstyle-slider').closest('.slider-container').querySelectorAll('.slider-labels span');
+        if (workstyleLabels.length >= 2) {
+            workstyleLabels[0].textContent = this.t('executor');
+            workstyleLabels[1].textContent = this.t('initiator');
+        }
     }
     
     // 处理发送消息
@@ -1199,7 +1289,6 @@ document.addEventListener('DOMContentLoaded', () => {
 function initializeControlPanel() {
     setupModeToggle();
     setupSliders();
-    setupSwitches();
     setupImageSettings();
 }
 
@@ -1217,16 +1306,19 @@ function setupModeToggle() {
         isTextMode = !isTextMode;
         
         if (isTextMode) {
-            modeTitle.textContent = '文本对话设置';
+            modeTitle.textContent = window.participantInterface ? window.participantInterface.t('aiPersonalitySettings') : 'AI Personality Settings';
             modeIcon.innerHTML = `
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                 <circle cx="9" cy="9" r="2"></circle>
                 <path d="M21 15l-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path>
             `;
-            textSettings.classList.add('active');
-            imageSettings.classList.remove('active');
+            // 更新为正确的ID
+            const aiPersonalitySettings = document.getElementById('ai-personality-settings');
+            const imageSettings = document.getElementById('image-settings');
+            if (aiPersonalitySettings) aiPersonalitySettings.classList.add('active');
+            if (imageSettings) imageSettings.classList.remove('active');
         } else {
-            modeTitle.textContent = '图片编辑设置';
+            modeTitle.textContent = window.participantInterface ? window.participantInterface.t('imageEditSettings') : 'Image Edit Settings';
             modeIcon.innerHTML = `
                 <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
                 <polyline points="14,2 14,8 20,8"></polyline>
@@ -1234,54 +1326,52 @@ function setupModeToggle() {
                 <line x1="16" y1="17" x2="8" y2="17"></line>
                 <polyline points="10,9 9,9 8,9"></polyline>
             `;
-            textSettings.classList.remove('active');
-            imageSettings.classList.add('active');
+            // 更新为正确的ID
+            const aiPersonalitySettings = document.getElementById('ai-personality-settings');
+            const imageSettings = document.getElementById('image-settings');
+            if (aiPersonalitySettings) aiPersonalitySettings.classList.remove('active');
+            if (imageSettings) imageSettings.classList.add('active');
         }
     });
 }
 
 // 设置滑块
 function setupSliders() {
-    // 严谨/创意滑块
-    const strictCreativeSlider = document.getElementById('strict-creative-slider');
-    const strictCreativeValue = document.getElementById('strict-creative-value');
+    // Creativity 滑块
+    const creativitySlider = document.getElementById('creativity-slider');
+    const creativityValue = document.getElementById('creativity-value');
     
-    strictCreativeSlider.addEventListener('input', function() {
-        const value = parseInt(this.value);
-        const strictPercent = 100 - value;
-        const creativePercent = value;
-        strictCreativeValue.textContent = `严谨${strictPercent}% 创意${creativePercent}%`;
-    });
+    if (creativitySlider && creativityValue) {
+        creativitySlider.addEventListener('input', function() {
+            const value = parseInt(this.value);
+            creativityValue.textContent = value;
+        });
+    }
     
-    // 简明/深思滑块
-    const simpleProfoundSlider = document.getElementById('simple-profound-slider');
-    const simpleProfoundValue = document.getElementById('simple-profound-value');
+    // Personality 滑块
+    const personalitySlider = document.getElementById('personality-slider');
+    const personalityValue = document.getElementById('personality-value');
     
-    simpleProfoundSlider.addEventListener('input', function() {
-        const value = parseInt(this.value);
-        if (value < 25) {
-            simpleProfoundValue.textContent = '简明';
-        } else if (value > 75) {
-            simpleProfoundValue.textContent = '深思';
-        } else {
-            simpleProfoundValue.textContent = '平衡';
-        }
-    });
+    if (personalitySlider && personalityValue) {
+        personalitySlider.addEventListener('input', function() {
+            const value = parseInt(this.value);
+            personalityValue.textContent = value;
+        });
+    }
+    
+    // Working Style 滑块
+    const workstyleSlider = document.getElementById('workstyle-slider');
+    const workstyleValue = document.getElementById('workstyle-value');
+    
+    if (workstyleSlider && workstyleValue) {
+        workstyleSlider.addEventListener('input', function() {
+            const value = parseInt(this.value);
+            workstyleValue.textContent = value;
+        });
+    }
 }
 
-// 设置开关
-function setupSwitches() {
-    const internetToggle = document.getElementById('internet-toggle');
-    const internetDescription = document.getElementById('internet-description');
-    
-    internetToggle.addEventListener('change', function() {
-        if (this.checked) {
-            internetDescription.textContent = '使用网络搜索';
-        } else {
-            internetDescription.textContent = '使用本地知识库';
-        }
-    });
-}
+// 开关功能已移除，新设计只使用滑块
 
 // 设置图片编辑功能
 function setupImageSettings() {
