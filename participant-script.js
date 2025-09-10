@@ -4,7 +4,9 @@ class ParticipantInterface {
         this.sessionId = null;
         this.isConnected = false;
         this.pollInterval = null;
-        this.currentLanguage = 'en'; // 默认英文
+        // 强制设置为英文，忽略localStorage中的语言偏好
+        localStorage.removeItem('preferredLanguage'); // 清除之前保存的语言偏好
+        this.currentLanguage = 'en';
         this.translations = {
             en: {
                 title: 'AI Assistant',
@@ -32,6 +34,7 @@ class ParticipantInterface {
                 sessionNotFound: 'Session not found, please check the Session ID',
                 enterSessionId: 'Please enter Session ID',
                 joinedSession: 'Successfully joined session:',
+                downloadFile: 'Download',
                 // 控制面板翻译
                 controlPanel: 'Control Panel',
                 aiPersonalitySettings: 'AI Personality Settings',
@@ -73,6 +76,7 @@ class ParticipantInterface {
                 sessionNotFound: '会话不存在，请检查会话ID是否正确',
                 enterSessionId: '请输入会话ID',
                 joinedSession: '成功加入会话:',
+                downloadFile: '下载文件',
                 // 控制面板翻译
                 controlPanel: '控制面板',
                 aiPersonalitySettings: 'AI 性格设置',
@@ -213,12 +217,13 @@ class ParticipantInterface {
         const bubble = document.createElement('div');
         bubble.classList.add('message-bubble');
 
-        if (message.content) {
-            const textElement = document.createElement('p');
-            textElement.style.marginBottom = '8px';
-            textElement.textContent = message.content;
-            bubble.appendChild(textElement);
-        }
+        // 移除文件消息内容显示
+        // if (message.content) {
+        //     const textElement = document.createElement('p');
+        //     textElement.style.marginBottom = '8px';
+        //     textElement.textContent = message.content;
+        //     bubble.appendChild(textElement);
+        // }
 
         const fileContainer = document.createElement('div');
         fileContainer.classList.add('message-file');
@@ -241,7 +246,7 @@ class ParticipantInterface {
         fileInfo.appendChild(fileSize);
 
         const downloadButton = document.createElement('button');
-        downloadButton.textContent = 'Download';
+        downloadButton.textContent = this.t('downloadFile');
         downloadButton.classList.add('download-button'); // Use a class for styling
 
         downloadButton.onclick = async () => {
@@ -351,9 +356,10 @@ class ParticipantInterface {
         fileSize.className = 'file-size';
         fileSize.textContent = this.formatFileSize(message.fileSize);
         
-        const fileMessage = document.createElement('div');
-        fileMessage.className = 'file-message';
-        fileMessage.textContent = message.content;
+        // 移除文件消息内容显示
+        // const fileMessage = document.createElement('div');
+        // fileMessage.className = 'file-message';
+        // fileMessage.textContent = message.content;
         
         fileDetails.appendChild(fileName);
         fileDetails.appendChild(fileSize);
@@ -367,7 +373,8 @@ class ParticipantInterface {
         downloadButton.textContent = '下载文件';
         downloadButton.onclick = () => this.downloadFile(message.fileId, message.fileName);
         
-        bubbleDiv.appendChild(fileMessage);
+        // 移除文件消息内容
+        // bubbleDiv.appendChild(fileMessage);
         bubbleDiv.appendChild(fileInfo);
         bubbleDiv.appendChild(downloadButton);
         
@@ -420,7 +427,8 @@ class ParticipantInterface {
     }
 
     showWaitingIndicator() {
-        this.addMessage('system', 'AI正在思考中...');
+        // 移除AI思考中的消息显示
+        // this.addMessage('system', 'AI正在思考中...');
     }
     
     hideWaitingIndicator() {
@@ -956,6 +964,12 @@ class ParticipantInterface {
          if (this.sessionJoinBtn) {
              this.sessionJoinBtn.textContent = this.t('joinSession');
          }
+         
+         // 更新下载按钮文本
+         const downloadButtons = document.querySelectorAll('.download-button');
+         downloadButtons.forEach(button => {
+             button.textContent = this.t('downloadFile');
+         });
          
          // 更新控制面板语言
          this.updateControlPanelLanguage();
