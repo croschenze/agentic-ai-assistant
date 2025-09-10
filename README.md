@@ -2,6 +2,40 @@
 
 这是一个基于Web的实验测试平台，包含巫师端和受测者端两个界面，用于进行跨平台的实验研究。
 
+## 文件架构说明
+
+**这些文件是巫师端和受测者端互通必不可少的文件**，构成了完整的Wizard-of-Oz实验平台：
+
+### 🔥 Firebase通信层（必需）
+- `firebase-config.js` - Firebase配置和初始化
+- `firebase-comm.js` - Firebase实时数据库通信模块
+- `communication.js` - 统一通信接口，处理消息同步和文件传输
+
+### 💾 存储管理系统（必需）
+- `hybrid-storage.js` - 智能存储管理，在localStorage和IndexedDB间切换
+- `indexeddb-storage.js` - 大容量IndexedDB存储
+- `large-file-handler.js` - 大文件分块处理和压缩
+- `storage-monitor.js` - 存储使用监控
+
+### 🖥️ 用户界面层（必需）
+- `wizard.html` + `wizard-script.js` + `wizard-styles.css` - 巫师端完整界面
+- `participant.html` + `participant-script.js` + `participant-styles.css` - 受测者端完整界面
+
+### 🚀 部署和配置（必需）
+- `start_server.py` + `start_server.bat` - 服务器启动脚本
+- `firebase-setup-guide.html` - Firebase配置指南
+- `README.md` - 完整部署文档
+
+### 互通机制说明
+
+1. **实时通信**：通过Firebase Realtime Database实现巫师端和受测者端的实时消息同步
+2. **文件共享**：支持PDF、图片等文件在两端间传输，包含大文件分块处理
+3. **会话管理**：统一的会话ID系统，确保两端连接到同一实验会话
+4. **状态同步**：参与者状态、消息历史、文件列表等数据实时同步
+5. **存储优化**：智能存储管理，确保大量数据的可靠存储
+
+**结论**：这17个文件构成了一个完整的Wizard-of-Oz实验平台，每个文件都承担着特定的功能，缺少任何一个都会影响两端的正常互通。
+
 ## 系统要求
 
 - Python 3.6+ 或 Node.js 12+
