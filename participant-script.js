@@ -1443,40 +1443,190 @@ class ParticipantInterface {
         const modalContent = document.createElement('div');
         modalContent.classList.add('image-modal-content');
         
+        // 创建图片容器
+        const imageContainer = document.createElement('div');
+        imageContainer.classList.add('image-container');
+        
+        // 创建SVG画布用于绘制圆圈
+        const svgCanvas = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svgCanvas.classList.add('drawing-canvas');
+        
         // 创建大图
         const fullImage = document.createElement('img');
         fullImage.src = imageUrl;
+        fullImage.classList.add('modal-image');
         
-        // 创建关闭按钮
+        // 创建关闭按钮（右上角）
         const closeBtn = document.createElement('button');
         closeBtn.classList.add('image-modal-close');
         closeBtn.innerHTML = '×';
-        closeBtn.onclick = () => {
+        
+        // 创建控制面板
+        const controlPanel = document.createElement('div');
+        controlPanel.classList.add('image-control-panel');
+        
+        // 创建缩放控制
+        const zoomControl = document.createElement('div');
+        zoomControl.classList.add('zoom-control');
+        
+        const zoomLabel = document.createElement('label');
+        zoomLabel.textContent = '缩放: ';
+        
+        const zoomSlider = document.createElement('input');
+        zoomSlider.type = 'range';
+        zoomSlider.min = '1';
+        zoomSlider.max = '2';
+        zoomSlider.step = '0.1';
+        zoomSlider.value = '1';
+        zoomSlider.classList.add('zoom-slider');
+        
+        const zoomValue = document.createElement('span');
+        zoomValue.textContent = '1.0x';
+        zoomValue.classList.add('zoom-value');
+        
+        zoomControl.appendChild(zoomLabel);
+        zoomControl.appendChild(zoomSlider);
+        zoomControl.appendChild(zoomValue);
+        
+        // 创建反馈输入区域
+        const feedbackArea = document.createElement('div');
+        feedbackArea.classList.add('feedback-area');
+        
+        const feedbackInput = document.createElement('textarea');
+        feedbackInput.placeholder = '输入对图片的反馈...';
+        feedbackInput.classList.add('feedback-input');
+        
+        const sendButton = document.createElement('button');
+        sendButton.textContent = '发送反馈';
+        sendButton.classList.add('send-feedback-btn');
+        
+        feedbackArea.appendChild(feedbackInput);
+        feedbackArea.appendChild(sendButton);
+        
+        controlPanel.appendChild(zoomControl);
+        controlPanel.appendChild(feedbackArea);
+        
+        // 组装图片容器
+        imageContainer.appendChild(fullImage);
+        imageContainer.appendChild(svgCanvas);
+        
+        // 组装模态框内容
+        modalContent.appendChild(imageContainer);
+        modalContent.appendChild(closeBtn);
+        modalContent.appendChild(controlPanel);
+        modal.appendChild(modalContent);
+        
+        // 变量存储
+        let currentZoom = 1;
+        let circles = [];
+        let isDrawing = false;
+        let currentPath = [];
+        
+        // 缩放功能
+        zoomSlider.addEventListener('input', (e) => {
+            currentZoom = parseFloat(e.target.value);
+            zoomValue.textContent = currentZoom.toFixed(1) + 'x';
+            fullImage.style.transform = `scale(${currentZoom})`;
+            svgCanvas.style.transform = `scale(${currentZoom})`;
+        });
+        
+        // 发送反馈功能
+        sendButton.addEventListener('click', async () => {
+            const feedback = feedbackInput.value.trim();
+            if (feedback && this.sessionId && this.comm) {
+                try {
+                    await this.saveParticipantMessage(feedback);
+                    this.addMessage('user', feedback);
+                    feedbackInput.value = '';
+                } catch (error) {
+                    console.error('发送反馈失败:', error);
+                    alert('发送反馈失败: ' + error.message);
+                }
+            }
+        });
+        
+        // 画圈功能
+        let startX, startY;
+        
+        const startDrawing = (e) => {
+            isDrawing = true;
+            currentPath = [];
+            const rect = imageContainer.getBoundingClientRect();
+            startX = e.clientX - rect.left;
+            startY = e.clientY - rect.top;
+            currentPath.push({ x: startX, y: startY });
+        };
+        
+        const draw = (e) => {
+            if (!isDrawing) return;
+            const rect = imageContainer.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            currentPath.push({ x, y });
+        };
+        
+        const endDrawing = () => {
+            if (!isDrawing || currentPath.length < 3) {
+                isDrawing = false;
+                return;
+            }
+            
+            // 计算拟合圆圈
+            const circle = this.fitCircleToPath(currentPath);
+            if (circle) {
+                this.addCircleToSVG(svgCanvas, circle);
+                circles.push(circle);
+            }
+            
+            isDrawing = false;
+            currentPath = [];
+        };
+        
+        imageContainer.addEventListener('mousedown', startDrawing);
+        imageContainer.addEventListener('mousemove', draw);
+        imageContainer.addEventListener('mouseup', endDrawing);
+        
+        // 关闭功能
+        const closeModal = () => {
             modal.classList.remove('show');
+            document.removeEventListener('keydown', handleKeyPress);
             setTimeout(() => {
-                document.body.removeChild(modal);
+                if (document.body.contains(modal)) {
+                    document.body.removeChild(modal);
+                }
             }, 300);
         };
+        
+        closeBtn.onclick = closeModal;
         
         // 点击模态框背景关闭
         modal.onclick = (e) => {
             if (e.target === modal) {
-                closeBtn.click();
+                closeModal();
             }
         };
         
-        // 按ESC键关闭
+        // 键盘事件处理
         const handleKeyPress = (e) => {
             if (e.key === 'Escape') {
-                closeBtn.click();
-                document.removeEventListener('keydown', handleKeyPress);
+                closeModal();
+            } else if (e.ctrlKey && e.key === 'z') {
+                e.preventDefault();
+                // 撤销最后一个圆圈
+                if (circles.length > 0) {
+                    circles.pop();
+                    this.redrawCircles(svgCanvas, circles);
+                }
             }
         };
+        
         document.addEventListener('keydown', handleKeyPress);
         
-        modalContent.appendChild(fullImage);
-        modalContent.appendChild(closeBtn);
-        modal.appendChild(modalContent);
+        // 图片加载完成后设置SVG尺寸
+        fullImage.onload = () => {
+            svgCanvas.setAttribute('width', fullImage.offsetWidth);
+            svgCanvas.setAttribute('height', fullImage.offsetHeight);
+        };
         
         document.body.appendChild(modal);
         
@@ -1484,6 +1634,57 @@ class ParticipantInterface {
         setTimeout(() => {
             modal.classList.add('show');
         }, 10);
+    }
+
+    // 拟合圆圈到鼠标路径
+    fitCircleToPath(path) {
+        if (path.length < 3) return null;
+        
+        // 计算路径的边界框
+        let minX = path[0].x, maxX = path[0].x;
+        let minY = path[0].y, maxY = path[0].y;
+        
+        for (let point of path) {
+            minX = Math.min(minX, point.x);
+            maxX = Math.max(maxX, point.x);
+            minY = Math.min(minY, point.y);
+            maxY = Math.max(maxY, point.y);
+        }
+        
+        // 计算中心点和半径
+        const centerX = (minX + maxX) / 2;
+        const centerY = (minY + maxY) / 2;
+        const radius = Math.min(maxX - minX, maxY - minY) / 2;
+        
+        // 确保半径合理
+        if (radius < 10 || radius > 200) return null;
+        
+        return { x: centerX, y: centerY, radius };
+    }
+
+    // 添加圆圈到SVG
+    addCircleToSVG(svg, circle) {
+        const svgCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        svgCircle.setAttribute('cx', circle.x);
+        svgCircle.setAttribute('cy', circle.y);
+        svgCircle.setAttribute('r', circle.radius);
+        svgCircle.setAttribute('fill', 'rgba(255, 165, 0, 0.2)');
+        svgCircle.setAttribute('stroke', 'orange');
+        svgCircle.setAttribute('stroke-width', '2');
+        svg.appendChild(svgCircle);
+    }
+
+    // 重绘所有圆圈
+    redrawCircles(svg, circles) {
+        // 清除所有现有圆圈
+        while (svg.firstChild) {
+            svg.removeChild(svg.firstChild);
+        }
+        
+        // 重新绘制所有圆圈
+        for (let circle of circles) {
+            this.addCircleToSVG(svg, circle);
+        }
     }
 
     // 清理资源
