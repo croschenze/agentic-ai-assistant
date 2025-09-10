@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wizard-of-Oz 控制面板</title>
+    <link rel="stylesheet" href="wizard-styles.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    
+    <!-- Firebase Configuration -->
+    <script src="firebase-config.js"></script>
+    <script src="firebase-comm.js"></script>
+</head>
+<body>
+    <div class="wizard-container">
+        <div class="wizard-header">
+            <h1>🧙‍♂️ Wizard-of-Oz 实验控制面板</h1>
+            <div class="session-info">
+                <span id="session-count">活跃会话: 0</span>
+                <button id="clear-all-btn" class="danger-btn">清空所有会话</button>
+            </div>
+        </div>
+        
+        <div class="wizard-main">
+            <!-- 左侧：会话列表 -->
+            <div class="sessions-panel">
+                <div class="panel-header">
+                    <h3>实验会话</h3>
+                    <button id="new-session-btn" class="primary-btn">+ 新建会话</button>
+                </div>
+                
+                <!-- 加入会话区域 -->
+                <div class="join-session-area">
+                    <div class="join-session-input">
+                        <input type="text" id="join-session-input" placeholder="输入会话ID (如: WOZ-ABC12345)" maxlength="20">
+                        <button id="join-session-btn" class="secondary-btn">加入会话</button>
+                    </div>
+                </div>
+                
+                <div class="sessions-list" id="sessions-list">
+                    <!-- 会话项将动态添加 -->
+                </div>
+            </div>
+            
+            <!-- 右侧：当前会话详情 -->
+            <div class="session-detail">
+                <div class="session-header">
+                    <h3 id="current-session-title">选择一个会话开始</h3>
+                    <div class="session-controls">
+                        <button id="copy-session-url" class="secondary-btn" style="display: none;">📋 复制被测者链接</button>
+                        <button id="end-session-btn" class="danger-btn" style="display: none;">结束会话</button>
+                    </div>
+                </div>
+                
+                <div class="uploaded-files-section" id="uploaded-files-section" style="display: none;">
+                    <div class="files-header" id="files-header">
+                        <h4>上传的文件</h4>
+                        <button class="toggle-files-btn" id="toggle-files-btn">▼ 展开</button>
+                    </div>
+                    <div class="uploaded-files-list" id="uploaded-files-list" style="display: none;">
+                        <!-- 文件列表将在这里动态生成 -->
+                    </div>
+                </div>
+                
+                <div class="chat-area" id="chat-area" style="display: none;">
+                    <div class="messages-container" id="messages-container">
+                        <!-- 消息将动态添加 -->
+                    </div>
+                    
+                    <div class="wizard-input-area">
+                        <div class="input-header">
+                            <span>💬 发送AI回复给被测者</span>
+                            <div class="input-tools">
+                                <button id="wizard-file-btn" class="tool-btn">📎 上传文件</button>
+                                <button id="gemini-assist-btn" class="tool-btn">🤖 Gemini助手</button>
+                                <button id="quick-replies-btn" class="tool-btn">⚡ 快速回复</button>
+                            </div>
+                        </div>
+                        
+                        <!-- 简化的文件上传区域 -->
+                        <div class="simple-file-upload" id="simple-file-upload" style="display: none;">
+                            <div class="file-upload-container">
+                                <input type="file" id="simple-file-input" accept=".pdf,.jpg,.jpeg,.png" multiple>
+                                <div class="file-upload-info">
+                                    <p>📎 选择文件上传 (支持 PDF, JPEG, PNG 格式)</p>
+                                </div>
+                                <div class="file-upload-actions">
+                                    <button class="upload-btn" id="simple-upload-btn" disabled>上传文件</button>
+                                    <button class="cancel-btn" id="simple-cancel-btn">取消</button>
+                                </div>
+                            </div>
+                            <!-- 文件预览列表 -->
+                            <div class="file-preview-list" id="file-preview-list" style="display: none;"></div>
+                        </div>
+                        
+                        <textarea id="wizard-input" placeholder="在此输入AI回复内容...\n\n提示：你可以复制被测者的问题到Gemini中获取回答，然后粘贴到这里发送。"></textarea>
+                        <div class="input-controls">
+                            <button id="send-reply-btn" class="primary-btn">发送回复</button>
+                            <span class="char-count" id="char-count">0 字符</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="no-session" id="no-session">
+                    <div class="empty-state">
+                        <div class="empty-icon">🎭</div>
+                        <h3>欢迎使用 Wizard-of-Oz 实验控制面板</h3>
+                        <p>点击左侧的"新建会话"按钮开始一个新的实验会话。</p>
+                        <p>每个会话都会生成一个独特的链接，供被测者访问。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 快速回复模板弹窗 -->
+        <div class="modal" id="quick-replies-modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>快速回复模板</h3>
+                    <button class="close-btn" id="close-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="quick-reply-item" data-reply="你好！我是你的Agentic AI助手。我可以帮助你理解和分析网页内容，有什么我可以帮你的吗？">
+                        <strong>问候语</strong>
+                        <p>你好！我是你的Agentic AI助手...</p>
+                    </div>
+                    <div class="quick-reply-item" data-reply="我正在分析你提到的网页内容，请稍等片刻...">
+                        <strong>分析中</strong>
+                        <p>我正在分析你提到的网页内容...</p>
+                    </div>
+                    <div class="quick-reply-item" data-reply="根据我的分析，这个网页主要讨论了...">
+                        <strong>分析结果</strong>
+                        <p>根据我的分析，这个网页主要讨论了...</p>
+                    </div>
+                    <div class="quick-reply-item" data-reply="我需要更多信息来帮助你。你能具体说明一下你想了解什么吗？">
+                        <strong>需要更多信息</strong>
+                        <p>我需要更多信息来帮助你...</p>
+                    </div>
+                    <div class="quick-reply-item" data-reply="很抱歉，我暂时无法处理这个请求。让我尝试另一种方法...">
+                        <strong>处理困难</strong>
+                        <p>很抱歉，我暂时无法处理这个请求...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 调试信息显示区域 -->
+    <div id="debug-info" style="position: fixed; bottom: 10px; right: 10px; width: 400px; max-height: 300px; background: rgba(0,0,0,0.8); color: white; padding: 10px; border-radius: 5px; font-family: monospace; font-size: 12px; overflow-y: auto; z-index: 9999; display: block;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <strong>调试信息</strong>
+            <button onclick="document.getElementById('debug-info').style.display='none'" style="background: none; border: none; color: white; cursor: pointer;">×</button>
+        </div>
+        <div id="debug-content"></div>
+    </div>
+
+    <script src="indexeddb-storage.js"></script>
+    <script src="hybrid-storage.js"></script>
+    <script src="storage-monitor.js"></script>
+    <script src="large-file-handler.js"></script>
+    <script src="communication.js"></script>
+    <script src="wizard-script.js"></script>
+</body>
+</html>

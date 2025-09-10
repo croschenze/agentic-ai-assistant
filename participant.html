@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 助手对话</title>
+    <link rel="stylesheet" href="participant-styles.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    
+    <!-- Firebase Configuration -->
+    <script src="firebase-config.js"></script>
+    <script src="firebase-comm.js"></script>
+</head>
+<body>
+    <!-- 会话加入界面 -->
+    <div id="session-join-container" class="session-join-container">
+        <div class="join-form">
+            <h2>加入会话</h2>
+            <input type="text" id="session-join-input" placeholder="输入会话ID (例如: WOZ-EPQ6I2C1)">
+            <button id="session-join-btn">加入会话</button>
+        </div>
+    </div>
+    
+    <!-- 聊天界面 -->
+    <div id="chat-container" class="chat-container" style="display: none;">
+        <div class="chat-header">
+            <div class="header-left">
+                <div class="session-info">
+                    <div class="session-id" id="session-id-label">Session ID: <span id="session-id">Loading...</span></div>
+                </div>
+            </div>
+            <h1 id="chat-title">AI Assistant</h1>
+            <div class="header-controls">
+                <div class="session-status" id="session-status">Connecting...</div>
+                <button class="language-toggle" id="language-toggle">中文</button>
+            </div>
+        </div>
+        
+        <!-- 上传文件显示区域已移除，被测者不需要查看文件列表 -->
+        
+        <div class="chat-messages" id="chat-messages">
+        </div>
+        
+        <div class="waiting-indicator" id="waiting-indicator" style="display: none;">
+            <div class="spinner"></div>
+            <span>AI正在思考中...</span>
+        </div>
+        
+        <div class="file-drop-zone" id="file-drop-zone">
+            <div class="drop-message">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14,2 14,8 20,8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10,9 9,9 8,9"></polyline>
+                </svg>
+                <p>拖拽PDF文件到此处上传</p>
+            </div>
+        </div>
+        
+        <div class="chat-input-container">
+            <div class="chat-input">
+                <input type="file" id="file-input" accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
+                <button class="file-button" id="file-button" title="上传文件 (PDF, JPEG, PNG)">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66L9.64 16.2a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                    </svg>
+                </button>
+                <input type="text" id="message-input" placeholder="输入您的消息..." maxlength="1000">
+                <button id="send-button" disabled>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22,2 15,22 11,13 2,9 22,2"></polygon>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="indexeddb-storage.js"></script>
+    <script src="hybrid-storage.js"></script>
+    <script src="storage-monitor.js"></script>
+    <script src="large-file-handler.js"></script>
+    <script src="communication.js"></script>
+    <script src="participant-script.js"></script>
+</body>
+</html>
