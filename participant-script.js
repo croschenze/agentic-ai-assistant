@@ -52,7 +52,7 @@ class ParticipantInterface {
                 initiator: 'Initiator'
             },
             zh: {
-                title: 'AI 助手',
+                 title: 'AI 助手',
                 sessionId: '',
                 connecting: '连接中...',
                 connected: '已连接',
@@ -246,27 +246,53 @@ class ParticipantInterface {
         fileInfo.appendChild(fileName);
         fileInfo.appendChild(fileSize);
 
-        const downloadButton = document.createElement('button');
-        downloadButton.textContent = "Download";
-        downloadButton.classList.add('download-button'); // Use a class for styling
+        // 检查是否是图片文件
+        // 文件类型可能存储在fileType或type属性中
+        const fileType = message.fileType || message.type;
+        const isImage = fileType && fileType.startsWith('image/');
+        console.log('文件类型检查:', { fileType, isImage, message });
 
-        downloadButton.onclick = async () => {
-            console.log('=== 下载按钮被点击 ===');
-            console.log('文件ID:', message.fileId);
-            console.log('文件名:', message.fileName);
-            try {
-                await this.downloadFile(message.fileId, message.fileName);
-            } catch (error) {
-                console.error('下载文件时出错:', error);
-                alert('下载文件失败: ' + error.message);
-            }
-        };
+        if (isImage) {
+            // 创建图片预览容器
+            const imagePreviewContainer = document.createElement('div');
+            imagePreviewContainer.classList.add('image-preview-container');
+            
+            // 创建加载指示器
+            const loadingIndicator = document.createElement('div');
+            loadingIndicator.classList.add('loading-indicator');
+            loadingIndicator.textContent = '加载图片中...';
+            imagePreviewContainer.appendChild(loadingIndicator);
+            
+            // 异步加载图片
+            this.loadImagePreview(message.fileId, imagePreviewContainer, loadingIndicator);
+            
+            fileContainer.appendChild(fileIcon);
+            fileContainer.appendChild(fileInfo);
+            bubble.appendChild(fileContainer);
+            bubble.appendChild(imagePreviewContainer);
+        } else {
+            // 非图片文件显示下载按钮
+            const downloadButton = document.createElement('button');
+            downloadButton.textContent = "Download";
+            downloadButton.classList.add('download-button'); // Use a class for styling
 
-        fileContainer.appendChild(fileIcon);
-        fileContainer.appendChild(fileInfo);
-        fileContainer.appendChild(downloadButton);
+            downloadButton.onclick = async () => {
+                console.log('=== 下载按钮被点击 ===');
+                console.log('文件ID:', message.fileId);
+                console.log('文件名:', message.fileName);
+                try {
+                    await this.downloadFile(message.fileId, message.fileName);
+                } catch (error) {
+                    console.error('下载文件时出错:', error);
+                    alert('下载文件失败: ' + error.message);
+                }
+            };
 
-        bubble.appendChild(fileContainer);
+            fileContainer.appendChild(fileIcon);
+            fileContainer.appendChild(fileInfo);
+            fileContainer.appendChild(downloadButton);
+            bubble.appendChild(fileContainer);
+        }
 
         const time = document.createElement('div');
         time.classList.add('message-time');
@@ -368,16 +394,37 @@ class ParticipantInterface {
         fileInfo.appendChild(fileIcon);
         fileInfo.appendChild(fileDetails);
         
-        // 创建下载按钮
-        const downloadButton = document.createElement('button');
-        downloadButton.className = 'download-button';
-        downloadButton.textContent = '下载文件';
-        downloadButton.onclick = () => this.downloadFile(message.fileId, message.fileName);
+        // 检查是否是图片文件
+        const fileType = message.fileType || message.type;
+        const isImage = fileType && fileType.startsWith('image/');
+        console.log('文件类型检查 (第二个方法):', { fileType, isImage, message });
         
-        // 移除文件消息内容
-        // bubbleDiv.appendChild(fileMessage);
         bubbleDiv.appendChild(fileInfo);
-        bubbleDiv.appendChild(downloadButton);
+        
+        if (isImage) {
+            // 创建图片预览容器
+            const imagePreviewContainer = document.createElement('div');
+            imagePreviewContainer.classList.add('image-preview-container');
+            
+            // 创建加载指示器
+            const loadingIndicator = document.createElement('div');
+            loadingIndicator.classList.add('loading-indicator');
+            loadingIndicator.textContent = '加载图片中...';
+            imagePreviewContainer.appendChild(loadingIndicator);
+            
+            // 异步加载图片
+            this.loadImagePreview(message.fileId, imagePreviewContainer, loadingIndicator);
+            
+            bubbleDiv.appendChild(imagePreviewContainer);
+        } else {
+            // 创建下载按钮
+            const downloadButton = document.createElement('button');
+            downloadButton.className = 'download-button';
+            downloadButton.textContent = '下载文件';
+            downloadButton.onclick = () => this.downloadFile(message.fileId, message.fileName);
+            
+            bubbleDiv.appendChild(downloadButton);
+        }
         
         contentContainer.appendChild(bubbleDiv);
         messageDiv.appendChild(contentContainer);
@@ -1226,6 +1273,109 @@ class ParticipantInterface {
         }
     }
 
+    // 加载图片预览
+    async loadImagePreview(fileId, containerElement, loadingIndicator) {
+        try {
+            console.log('=== 开始加载图片预览 ===');
+            console.log('文件ID:', fileId);
+            console.log('当前会话ID:', this.sessionId);
+            
+            if (!this.comm || !this.comm.getFileData) {
+                console.error('通信模块检查失败:', { comm: !!this.comm, getFileData: !!(this.comm && this.comm.getFileData) });
+                throw new Error('通信模块未初始化或不支持文件下载');
+            }
+            
+            // 从Firebase获取文件数据
+            const fileData = await this.comm.getFileData(fileId, this.sessionId);
+            
+            if (!fileData) {
+                throw new Error('文件不存在或已被删除');
+            }
+            
+            // 处理不同类型的文件存储
+            let imageUrl;
+            if (fileData.downloadURL) {
+                // 大文件存储在Firebase Storage中，直接使用下载URL
+                imageUrl = fileData.downloadURL;
+            } else if (fileData.content) {
+                // 文件内容存储在数据库中（Base64格式）
+                // 如果已经是data URL格式，直接使用
+                if (fileData.content.startsWith('data:')) {
+                    imageUrl = fileData.content;
+                } else {
+                    // 否则创建data URL
+                    imageUrl = `data:${fileData.type || 'image/jpeg'};base64,${fileData.content}`;
+                }
+            } else {
+                throw new Error('文件内容不可用');
+            }
+            
+            // 创建图片元素
+            const imgElement = document.createElement('img');
+            imgElement.classList.add('image-preview');
+            
+            // 图片加载完成后移除加载指示器
+            imgElement.onload = () => {
+                if (loadingIndicator && loadingIndicator.parentNode) {
+                    loadingIndicator.parentNode.removeChild(loadingIndicator);
+                }
+            };
+            
+            // 图片加载失败处理
+            imgElement.onerror = () => {
+                if (loadingIndicator) {
+                    loadingIndicator.textContent = '图片加载失败';
+                }
+                console.error('图片加载失败:', fileId);
+            };
+            
+            // 创建缩略图容器
+            const thumbnailContainer = document.createElement('div');
+            thumbnailContainer.classList.add('image-preview');
+            
+            // 设置图片源并添加到缩略图容器
+            imgElement.src = imageUrl;
+            thumbnailContainer.appendChild(imgElement);
+            
+            // 添加点击查看大图功能
+            thumbnailContainer.onclick = () => {
+                this.showImageModal(imageUrl);
+            };
+            
+            containerElement.appendChild(thumbnailContainer);
+            
+            // 添加操作按钮容器
+            const actionsContainer = document.createElement('div');
+            actionsContainer.classList.add('image-preview-actions');
+            
+            // 添加下载按钮
+            const downloadBtn = document.createElement('button');
+            downloadBtn.classList.add('preview-btn');
+            downloadBtn.textContent = 'Download';
+            downloadBtn.onclick = (e) => {
+                e.stopPropagation(); // 防止触发查看大图
+                // 创建下载链接
+                const a = document.createElement('a');
+                a.href = imageUrl;
+                a.download = fileId.split('/').pop() || 'image';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            };
+            
+            actionsContainer.appendChild(downloadBtn);
+            containerElement.appendChild(actionsContainer);
+            
+            console.log('图片预览加载成功');
+            
+        } catch (error) {
+            console.error('加载图片预览失败:', error);
+            if (loadingIndicator) {
+                loadingIndicator.textContent = '图片加载失败: ' + error.message;
+            }
+        }
+    }
+
     // 下载文件
     async downloadFile(fileId, fileName) {
         try {
@@ -1284,6 +1434,59 @@ class ParticipantInterface {
             console.error('下载文件失败:', error);
             alert('下载文件失败: ' + error.message);
         }
+    }
+
+    // 显示图片大图模态框
+    showImageModal(imageUrl) {
+        // 创建模态框
+        const modal = document.createElement('div');
+        modal.classList.add('image-modal');
+        
+        // 创建模态框内容
+        const modalContent = document.createElement('div');
+        modalContent.classList.add('image-modal-content');
+        
+        // 创建大图
+        const fullImage = document.createElement('img');
+        fullImage.src = imageUrl;
+        
+        // 创建关闭按钮
+        const closeBtn = document.createElement('button');
+        closeBtn.classList.add('image-modal-close');
+        closeBtn.innerHTML = '×';
+        closeBtn.onclick = () => {
+            modal.classList.remove('show');
+            setTimeout(() => {
+                document.body.removeChild(modal);
+            }, 300);
+        };
+        
+        // 点击模态框背景关闭
+        modal.onclick = (e) => {
+            if (e.target === modal) {
+                closeBtn.click();
+            }
+        };
+        
+        // 按ESC键关闭
+        const handleKeyPress = (e) => {
+            if (e.key === 'Escape') {
+                closeBtn.click();
+                document.removeEventListener('keydown', handleKeyPress);
+            }
+        };
+        document.addEventListener('keydown', handleKeyPress);
+        
+        modalContent.appendChild(fullImage);
+        modalContent.appendChild(closeBtn);
+        modal.appendChild(modalContent);
+        
+        document.body.appendChild(modal);
+        
+        // 显示模态框
+        setTimeout(() => {
+            modal.classList.add('show');
+        }, 10);
     }
 
     // 清理资源
