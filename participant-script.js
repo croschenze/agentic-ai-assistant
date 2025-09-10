@@ -6,6 +6,7 @@ class ParticipantInterface {
         this.pollInterval = null;
         // 强制设置为英文，忽略localStorage中的语言偏好
         localStorage.removeItem('preferredLanguage'); // 清除之前保存的语言偏好
+        localStorage.clear(); // 清除所有localStorage数据，确保没有残留的语言设置
         this.currentLanguage = 'en';
         this.translations = {
             en: {
@@ -246,7 +247,7 @@ class ParticipantInterface {
         fileInfo.appendChild(fileSize);
 
         const downloadButton = document.createElement('button');
-        downloadButton.textContent = this.t('downloadFile');
+        downloadButton.textContent = "Download";
         downloadButton.classList.add('download-button'); // Use a class for styling
 
         downloadButton.onclick = async () => {
@@ -965,10 +966,10 @@ class ParticipantInterface {
              this.sessionJoinBtn.textContent = this.t('joinSession');
          }
          
-         // 更新下载按钮文本
+         // 更新下载按钮文本 - 始终显示为英文"Download"
          const downloadButtons = document.querySelectorAll('.download-button');
          downloadButtons.forEach(button => {
-             button.textContent = this.t('downloadFile');
+             button.textContent = "Download";
          });
          
          // 更新控制面板语言
