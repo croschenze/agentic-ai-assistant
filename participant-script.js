@@ -1469,41 +1469,23 @@ class ParticipantInterface {
         const zoomControl = document.createElement('div');
         zoomControl.classList.add('zoom-control');
         
-        const zoomLabel = document.createElement('label');
-        zoomLabel.textContent = '缩放: ';
-        
-        const zoomSlider = document.createElement('input');
-        zoomSlider.type = 'range';
-        zoomSlider.min = '1';
-        zoomSlider.max = '2';
-        zoomSlider.step = '0.1';
-        zoomSlider.value = '1';
-        zoomSlider.classList.add('zoom-slider');
-        
-        const zoomValue = document.createElement('span');
-        zoomValue.textContent = '1.0x';
-        zoomValue.classList.add('zoom-value');
-        
-        zoomControl.appendChild(zoomLabel);
-        zoomControl.appendChild(zoomSlider);
-        zoomControl.appendChild(zoomValue);
+        // Remove zoom control - not needed anymore
         
         // 创建反馈输入区域
         const feedbackArea = document.createElement('div');
         feedbackArea.classList.add('feedback-area');
         
         const feedbackInput = document.createElement('textarea');
-        feedbackInput.placeholder = '输入对图片的反馈...';
+        feedbackInput.placeholder = 'Enter your feedback about this image...';
         feedbackInput.classList.add('feedback-input');
         
         const sendButton = document.createElement('button');
-        sendButton.textContent = '发送反馈';
+        sendButton.textContent = 'Send Feedback';
         sendButton.classList.add('send-feedback-btn');
         
         feedbackArea.appendChild(feedbackInput);
         feedbackArea.appendChild(sendButton);
         
-        controlPanel.appendChild(zoomControl);
         controlPanel.appendChild(feedbackArea);
         
         // 组装图片容器
@@ -1517,18 +1499,9 @@ class ParticipantInterface {
         modal.appendChild(modalContent);
         
         // 变量存储
-        let currentZoom = 1;
         let circles = [];
         let isDrawing = false;
         let currentPath = [];
-        
-        // 缩放功能
-        zoomSlider.addEventListener('input', (e) => {
-            currentZoom = parseFloat(e.target.value);
-            zoomValue.textContent = currentZoom.toFixed(1) + 'x';
-            fullImage.style.transform = `scale(${currentZoom})`;
-            svgCanvas.style.transform = `scale(${currentZoom})`;
-        });
         
         // 发送反馈功能
         sendButton.addEventListener('click', async () => {
@@ -1538,9 +1511,11 @@ class ParticipantInterface {
                     await this.saveParticipantMessage(feedback);
                     this.addMessage('user', feedback);
                     feedbackInput.value = '';
+                    // Auto-close modal after sending feedback
+                    closeModal();
                 } catch (error) {
-                    console.error('发送反馈失败:', error);
-                    alert('发送反馈失败: ' + error.message);
+                    console.error('Failed to send feedback:', error);
+                    alert('Failed to send feedback: ' + error.message);
                 }
             }
         });
