@@ -257,18 +257,15 @@ class ParticipantInterface {
             const imagePreviewContainer = document.createElement('div');
             imagePreviewContainer.classList.add('image-preview-container');
             
-            // 创建加载指示器
+            // 添加加载指示器
             const loadingIndicator = document.createElement('div');
             loadingIndicator.classList.add('loading-indicator');
             loadingIndicator.textContent = '加载图片中...';
             imagePreviewContainer.appendChild(loadingIndicator);
             
-            // 异步加载图片
+            // 异步加载图片预览
             this.loadImagePreview(message.fileId, imagePreviewContainer, loadingIndicator);
             
-            fileContainer.appendChild(fileIcon);
-            fileContainer.appendChild(fileInfo);
-            bubble.appendChild(fileContainer);
             bubble.appendChild(imagePreviewContainer);
         } else {
             // 非图片文件显示下载按钮
@@ -399,24 +396,24 @@ class ParticipantInterface {
         const isImage = fileType && fileType.startsWith('image/');
         console.log('文件类型检查 (第二个方法):', { fileType, isImage, message });
         
-        bubbleDiv.appendChild(fileInfo);
-        
         if (isImage) {
             // 创建图片预览容器
             const imagePreviewContainer = document.createElement('div');
             imagePreviewContainer.classList.add('image-preview-container');
             
-            // 创建加载指示器
+            // 添加加载指示器
             const loadingIndicator = document.createElement('div');
             loadingIndicator.classList.add('loading-indicator');
             loadingIndicator.textContent = '加载图片中...';
             imagePreviewContainer.appendChild(loadingIndicator);
             
-            // 异步加载图片
+            // 异步加载图片预览
             this.loadImagePreview(message.fileId, imagePreviewContainer, loadingIndicator);
             
             bubbleDiv.appendChild(imagePreviewContainer);
         } else {
+            bubbleDiv.appendChild(fileInfo);
+            
             // 创建下载按钮
             const downloadButton = document.createElement('button');
             downloadButton.className = 'download-button';
