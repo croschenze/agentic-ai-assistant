@@ -1709,9 +1709,9 @@ body {
  
  .image-modal-content {
      position: relative;
-     width: 70vw;
-     height: 52.5vw; /* 70vw * 3/4 = 52.5vw for 4:3 aspect ratio */
-     max-height: 70vh;
+     width: 80vw;
+     height: 60vw; /* 80vw * 3/4 = 60vw for 4:3 aspect ratio */
+     max-height: 80vh;
      background: white;
      border-radius: 8px;
      overflow: hidden;
@@ -1785,7 +1785,7 @@ body {
 }
 
 .modal-controls {
-     padding: 15px 20px;
+     padding: 20px 25px;
      background: white;
      border-top: 1px solid #e1e5e9;
      flex-shrink: 0;
@@ -1794,8 +1794,9 @@ body {
 
 
 .feedback-section {
-     margin-top: 0;
- }
+    margin-top: 0;
+    padding: 0 15px 15px 15px;
+}
 
 .feedback-section label {
     display: block;
