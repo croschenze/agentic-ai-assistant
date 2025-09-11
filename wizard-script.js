@@ -1,4 +1,4 @@
-// Wizard-of-Oz 实验控制面板脚本
+// Wizard-of-Oz Experiment Control Panel Script
 
 class WizardController {
     constructor() {
@@ -19,35 +19,35 @@ class WizardController {
         const initialized = await this.comm.initialize();
         
         if (!initialized) {
-            console.error('Firebase通信模块初始化失败');
-            alert('无法连接到服务器，请检查网络连接');
+            console.error('Firebase communication module initialization failed');
+            alert('Unable to connect to server, please check network connection');
             return;
         }
         
-        console.log('Firebase通信模块已准备就绪');
+        console.log('Firebase communication module is ready');
         
-        debugLog('开始绑定事件');
+        debugLog('Starting event binding');
         this.bindEvents();
-        debugLog('事件绑定完成');
+        debugLog('Event binding completed');
         
-        debugLog('开始设置通信');
+        debugLog('Starting communication setup');
         this.setupCommunication();
-        debugLog('通信设置完成');
+        debugLog('Communication setup completed');
         
-        debugLog('开始加载会话');
+        debugLog('Starting session loading');
         await this.loadSessions();
-        debugLog('会话加载完成');
+        debugLog('Session loading completed');}]}}}
         
-        debugLog('开始轮询');
+        debugLog('Starting polling');
         this.startPolling();
-        debugLog('轮询启动完成');
+        debugLog('Polling startup completed');
         
-        debugLog('准备设置文件上传功能');
+        debugLog('Preparing file upload functionality');
         try {
             this.setupWizardFileUpload();
-            debugLog('文件上传功能设置完成');
+            debugLog('File upload functionality setup completed');
         } catch (error) {
-            debugLog('文件上传功能设置失败: ' + error.message);
+            debugLog('File upload functionality setup failed: ' + error.message);
             console.error('setupWizardFileUpload error:', error);
         }
     }
@@ -199,7 +199,7 @@ class WizardController {
         const success = await this.comm.createSession(sessionId, sessionData);
         
         if (!success) {
-            this.showNotification('创建会话失败，请重试', 'error');
+            this.showNotification('Failed to create session, please try again', 'error');
             return;
         }
 
@@ -225,13 +225,13 @@ class WizardController {
         console.log('开始加入会话:', sessionId);
         
         if (!sessionId) {
-            this.showNotification('请输入会话ID', 'error');
+            this.showNotification('Please enter session ID', 'error');
             return;
         }
         
         // 验证会话ID格式
         if (!sessionId.startsWith('WOZ-') || sessionId.length !== 12) {
-            this.showNotification('会话ID格式不正确，应为 WOZ-XXXXXXXX 格式', 'error');
+            this.showNotification('Invalid session ID format, should be WOZ-XXXXXXXX format', 'error');
             return;
         }
         
@@ -298,8 +298,8 @@ class WizardController {
             console.log('加入会话完成:', sessionId);
             
         } catch (error) {
-            console.error('加入会话失败:', error);
-            this.showNotification('加入会话失败，请重试', 'error');
+            console.error('Failed to join session:', error);
+            this.showNotification('Failed to join session, please try again', 'error');
         }
     }
 
@@ -587,7 +587,7 @@ class WizardController {
         input.value = '';
         this.updateCharCount();
 
-        this.showNotification('回复已发送', 'success');
+        this.showNotification('Reply sent', 'success');
     }
 
     setupCommunication() {
@@ -1111,7 +1111,7 @@ class WizardController {
     copySessionUrl() {
         const url = this.getParticipantUrl();
         navigator.clipboard.writeText(url).then(() => {
-            this.showNotification('被测者链接已复制到剪贴板', 'success');
+            this.showNotification('Participant link copied to clipboard', 'success');
         }).catch(() => {
             // 备用方案
             const textArea = document.createElement('textarea');
@@ -1147,7 +1147,7 @@ class WizardController {
             this.saveToStorage();
             this.debouncedRenderSessions();
             this.renderSessionDetail();
-            this.showNotification('所有会话已清空', 'info');
+            this.showNotification('All sessions cleared', 'info');
         }
     }
 
@@ -1172,7 +1172,7 @@ class WizardController {
     openGeminiAssist() {
         const geminiUrl = 'https://gemini.google.com/';
         window.open(geminiUrl, '_blank');
-        this.showNotification('已打开Gemini助手，你可以在那里获取AI回复', 'info');
+        this.showNotification('Gemini Assistant opened, you can get AI replies there', 'info');
     }
 
     updateCharCount() {
@@ -1295,10 +1295,10 @@ class WizardController {
             localStorage.setItem('woz_wizard_data', JSON.stringify(data));
             console.log('清理后重新保存成功');
             
-            this.showNotification('存储空间已清理，数据保存成功', 'success');
+            this.showNotification('Storage space cleared, data saved successfully', 'success');
         } catch (retryError) {
             console.error('清理后仍然无法保存:', retryError);
-            this.showNotification('存储空间不足，请手动清理浏览器数据', 'error');
+            this.showNotification('Insufficient storage space, please manually clear browser data', 'error');}]}}}
         }
     }
 
@@ -1375,12 +1375,12 @@ class WizardController {
         if (isVisible) {
             // 折叠文件列表
             filesList.style.display = 'none';
-            toggleBtn.textContent = '▶ 展开';
+            toggleBtn.textContent = '▶ Expand';
             toggleBtn.classList.add('collapsed');
         } else {
             // 展开文件列表
             filesList.style.display = 'block';
-            toggleBtn.textContent = '▼ 折叠';
+            toggleBtn.textContent = '▼ Collapse';
             toggleBtn.classList.remove('collapsed');
         }
     }
@@ -1399,7 +1399,7 @@ class WizardController {
                 if (uploadedFilesSection) uploadedFilesSection.style.display = 'none';
             }
         } catch (error) {
-            console.error('加载文件列表失败:', error);
+            console.error('Failed to load file list:', error);}]}}}
             if (uploadedFilesSection) uploadedFilesSection.style.display = 'none';
         }
     }
@@ -1462,14 +1462,14 @@ class WizardController {
     
     async downloadFile(fileId) {
         if (!this.comm) {
-            this.showNotification('通信模块不可用', 'error');
+            this.showNotification('Communication module unavailable', 'error');
             return;
         }
         
         try {
             const fileData = await this.comm.getFileData(fileId);
             if (!fileData) {
-                this.showNotification('文件不存在或已过期', 'error');
+                this.showNotification('File does not exist or has expired', 'error');
                 return;
             }
             
@@ -1492,7 +1492,7 @@ class WizardController {
             
             // 如果没有下载URL，检查是否有base64内容（localStorage fallback）
             if (!fileData.content) {
-                this.showNotification('文件内容不可用', 'error');
+                this.showNotification('File content unavailable', 'error');
                 return;
             }
             
@@ -1528,18 +1528,18 @@ class WizardController {
             
             this.showNotification(`文件 ${fileData.name} 下载成功`, 'success');
         } catch (error) {
-            console.error('下载文件失败:', error);
-            this.showNotification('下载文件失败: ' + error.message, 'error');
+            console.error('File download failed:', error);
+            this.showNotification('Download failed: ' + error.message, 'error');
         }
     }
 
     // 新的简化文件上传设置
     setupSimpleFileUpload() {
-        debugLog('=== 设置简化文件上传功能 ===');
+        debugLog('=== Setting up simplified file upload functionality ===');
         
         // 防止重复绑定事件
         if (this.fileUploadEventsSetup) {
-            debugLog('文件上传事件已绑定，跳过重复设置');
+            debugLog('File upload events already bound, skipping duplicate setup');
             return;
         }
         
@@ -1549,7 +1549,7 @@ class WizardController {
         const previewList = document.getElementById('file-preview-list');
         
         if (!fileInput || !uploadBtn || !cancelBtn || !previewList) {
-            debugLog('错误: 找不到必要的文件上传元素');
+            debugLog('Error: Cannot find necessary file upload elements');
             return;
         }
         
@@ -1586,19 +1586,19 @@ class WizardController {
         
         // 标记事件已绑定
         this.fileUploadEventsSetup = true;
-        debugLog('=== 简化文件上传功能设置完成 ===');
+        debugLog('=== Simplified file upload functionality setup completed ===');
     }
     
     // 新的简化切换方法
     toggleSimpleFileUpload() {
-        debugLog('=== 切换简化文件上传区域显示 ===');
+        debugLog('=== Toggle simplified file upload area display ===');
         
         const fileUploadArea = document.getElementById('simple-file-upload');
-        debugLog('文件上传区域元素: ' + (fileUploadArea ? '找到' : '未找到'));
+        debugLog('File upload area element: ' + (fileUploadArea ? 'Found' : 'Not found'));
         
         if (fileUploadArea) {
             const isVisible = fileUploadArea.style.display !== 'none';
-            debugLog('当前是否可见: ' + isVisible);
+            debugLog('Currently visible: ' + isVisible);
             
             if (isVisible) {
                 fileUploadArea.style.display = 'none';
@@ -1610,35 +1610,35 @@ class WizardController {
                     this.setupSimpleFileUpload();
                 }
             }
-            debugLog('设置显示状态为: ' + fileUploadArea.style.display);
+            debugLog('Set display state to: ' + fileUploadArea.style.display);
         } else {
-            debugLog('错误: 找不到文件上传区域元素');
+            debugLog('Error: Cannot find file upload area element');}]}}}
         }
     }
 
     // 新的简化文件处理方法
     handleSimpleFileUpload(event) {
-        debugLog('=== 处理简化文件上传事件 ===');
+        debugLog('=== Handling simplified file upload event ===');
         
         const files = event.target.files;
-        debugLog('选中文件数量: ' + (files ? files.length : 0));
+        debugLog('Selected file count: ' + (files ? files.length : 0));
         
         if (!files || files.length === 0) {
-            debugLog('没有选中文件');
+            debugLog('No files selected');
             this.selectedFiles = [];
             this.displaySimpleFileList();
             return;
         }
 
         if (!this.currentSessionId) {
-            debugLog('没有选择会话');
-            this.showNotification('请先选择一个会话', 'error');
+            debugLog('No session selected');
+            this.showNotification('Please select a session first', 'error');
             return;
         }
 
         this.selectedFiles = Array.from(files);
         this.displaySimpleFileList();
-        debugLog('文件处理完成，数量: ' + this.selectedFiles.length);
+        debugLog('File processing completed, count: ' + this.selectedFiles.length);
         
         // 清空文件输入以允许重新选择相同文件
         event.target.value = '';
@@ -1646,7 +1646,7 @@ class WizardController {
     
     // 显示文件预览区域
     showSimpleFilePreview() {
-        debugLog('=== 显示文件预览区域 ===');
+        debugLog('=== Showing file preview area ===');
         const previewList = document.getElementById('file-preview-list');
         if (previewList) {
             previewList.style.display = 'block';
@@ -1656,7 +1656,7 @@ class WizardController {
     
     // 隐藏文件预览区域
     hideSimpleFilePreview() {
-        debugLog('=== 隐藏文件预览区域 ===');
+        debugLog('=== Hiding file preview area ===');
         const previewList = document.getElementById('file-preview-list');
         if (previewList) {
             previewList.style.display = 'none';
@@ -1666,11 +1666,11 @@ class WizardController {
     
     // 新的简化文件列表显示方法
     displaySimpleFileList() {
-        debugLog('=== 显示简化文件列表 ===');
+        debugLog('=== Displaying simplified file list ===');
         
         const fileList = document.getElementById('file-preview-list');
         if (!fileList) {
-            debugLog('错误: 找不到文件预览列表元素');
+            debugLog('Error: Cannot find file preview list element');
             return;
         }
         
@@ -1678,7 +1678,7 @@ class WizardController {
         fileList.innerHTML = '';
         
         if (this.selectedFiles.length === 0) {
-            fileList.innerHTML = '<div class="no-files">未选择文件</div>';
+            fileList.innerHTML = '<div class="no-files">No files selected</div>';}]}}}
             return;
         }
         
@@ -1751,7 +1751,7 @@ class WizardController {
         debugLog('当前会话ID: ' + this.currentSessionId);
         
         if (this.selectedFiles.length === 0) {
-            this.showNotification('请先选择文件', 'warning');
+            this.showNotification('Please select files first', 'warning');
             return;
         }
         
@@ -1762,7 +1762,7 @@ class WizardController {
         
         try {
             // 显示上传进度
-            this.showNotification('正在上传文件...', 'info');
+            this.showNotification('Uploading files...', 'info');
             
             // 逐个上传文件
             for (let i = 0; i < this.selectedFiles.length; i++) {
@@ -1773,13 +1773,13 @@ class WizardController {
             }
             
             // 上传完成
-            this.showNotification('文件上传成功！', 'success');
+            this.showNotification('Files uploaded successfully!', 'success');
             this.resetSimpleFileUpload();
             document.getElementById('simple-file-upload').style.display = 'none';
             
         } catch (error) {
             debugLog('文件上传失败: ' + error.message);
-            this.showNotification('文件上传失败: ' + error.message, 'error');
+            this.showNotification('File upload failed: ' + error.message, 'error');}]}}}
         }
     }
 

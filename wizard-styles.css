@@ -17,7 +17,7 @@ body {
     flex-direction: column;
 }
 
-/* 头部样式 */
+/* Header styles */
 .wizard-header {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
@@ -53,7 +53,7 @@ body {
     font-size: 14px;
 }
 
-/* 主要内容区域 */
+/* Main content area */
 .wizard-main {
     flex: 1;
     display: flex;
@@ -61,14 +61,14 @@ body {
     background: rgba(0, 0, 0, 0.1);
 }
 
-/* 左侧会话面板 */
+/* Left session panel */
 .sessions-panel {
     width: 350px;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 80px); /* 固定高度，减去头部高度 */
+    height: calc(100vh - 80px); /* Fixed height, minus header height */
     max-height: calc(100vh - 80px);
 }
 
@@ -86,7 +86,7 @@ body {
     color: #2d3748;
 }
 
-/* 加入会话区域样式 */
+/* Join session area styles */
 .join-session-area {
     padding: 15px 20px;
     border-bottom: 1px solid #e2e8f0;
@@ -123,12 +123,12 @@ body {
     flex: 1;
     overflow-y: auto;
     padding: 10px;
-    min-height: 0; /* 确保可以收缩以适应固定的面板头部 */
+    min-height: 0; /* Ensure can shrink to fit fixed panel header */
     scrollbar-width: thin; /* Firefox */
     scrollbar-color: #cbd5e0 transparent; /* Firefox */
 }
 
-/* Webkit滚动条样式 */
+/* Webkit scrollbar styles */
 .sessions-list::-webkit-scrollbar {
     width: 6px;
 }
@@ -146,7 +146,7 @@ body {
     background: #a0aec0;
 }
 
-/* 简化文件上传样式 */
+/* Simplified file upload styles */
 #simple-file-upload {
     display: none;
     background: rgba(255, 255, 255, 0.95);
@@ -198,7 +198,7 @@ body {
     background: #ebf8ff;
 }
 
-/* 文件预览项样式 */
+/* File preview item styles */
 .file-preview-item {
     display: flex;
     align-items: center;
@@ -472,18 +472,18 @@ body {
     border-left: 3px solid #2196f3;
 }
 
-/* 右侧会话详情 */
+/* Right session details */
 .session-detail {
     flex: 1;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 80px); /* 减去头部高度 */
+    height: calc(100vh - 80px); /* Minus header height */
     max-height: calc(100vh - 80px);
 }
 
-/* 上传文件区域 */
+/* Upload file area */
 .uploaded-files-section {
     padding: 20px;
     border-bottom: 1px solid #eee;
@@ -629,12 +629,12 @@ body {
     gap: 10px;
 }
 
-/* 聊天区域 */
+/* Chat area */
 .chat-area {
     flex: 1;
     display: flex;
     flex-direction: column;
-    min-height: 0; /* 允许flex子项收缩 */
+    min-height: 0; /* Allow flex items to shrink */
 }
 
 .messages-container {
@@ -642,7 +642,7 @@ body {
     overflow-y: auto;
     padding: 20px;
     background: #f8fafc;
-    min-height: 0; /* 确保可以收缩以适应固定的输入区域 */
+    min-height: 0; /* Ensure can shrink to fit fixed input area */
 }
 
 .message {
@@ -751,15 +751,15 @@ body {
     padding: 0 4px;
 }
 
-/* 巫师输入区域 */
+/* Wizard input area */
 .wizard-input-area {
     border-top: 1px solid #e2e8f0;
     background: white;
-    flex-shrink: 0; /* 防止输入区域被压缩 */
+    flex-shrink: 0; /* Prevent input area from being compressed */
     display: flex;
     flex-direction: column;
-    min-height: 200px; /* 确保输入区域有最小高度 */
-    max-height: 350px; /* 限制输入区域的最大高度 */
+    min-height: 200px; /* Ensure input area has minimum height */
+    max-height: 350px; /* Limit input area maximum height */
 }
 
 .input-header {
@@ -972,7 +972,7 @@ body {
     justify-content: space-between;
     align-items: center;
     background: #f8fafc;
-    flex-shrink: 0; /* 防止控制区域被压缩 */
+    flex-shrink: 0; /* Prevent control area from being compressed */
 }
 
 .char-count {
@@ -980,7 +980,7 @@ body {
     color: #718096;
 }
 
-/* 空状态 */
+/* Empty state */
 .no-session {
     flex: 1;
     display: flex;
@@ -1011,7 +1011,7 @@ body {
     margin-bottom: 8px;
 }
 
-/* 按钮样式 */
+/* Button styles */
 .primary-btn {
     background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
     color: white;
@@ -1063,7 +1063,7 @@ body {
     box-shadow: 0 4px 12px rgba(245, 101, 101, 0.4);
 }
 
-/* 模态框样式 */
+/* Modal styles */
 .modal {
     position: fixed;
     top: 0;
@@ -1156,7 +1156,7 @@ body {
     margin: 0;
 }
 
-/* 响应式设计 */
+/* Responsive design */
 @media (max-width: 768px) {
     .wizard-main {
         flex-direction: column;
@@ -1179,7 +1179,7 @@ body {
     }
 }
 
-/* 滚动条样式 */
+/* Scrollbar styles */
 ::-webkit-scrollbar {
     width: 6px;
 }
