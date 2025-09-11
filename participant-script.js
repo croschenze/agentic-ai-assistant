@@ -1557,21 +1557,8 @@ class ParticipantInterface {
             const feedback = feedbackInput.value.trim();
             if (feedback && this.sessionId && this.comm) {
                 try {
-                    // 如果有圆圈标注，生成标注图片
-                    let annotatedImageData = null;
-                    if (circles.length > 0) {
-                        annotatedImageData = await this.generateAnnotatedImage(fullImage, svgCanvas, circles);
-                    }
-                    
-                    // 发送反馈消息
                     await this.saveParticipantMessage(feedback);
                     this.addMessage('user', feedback);
-                    
-                    // 如果有标注图片，也发送图片
-                    if (annotatedImageData) {
-                        await this.sendAnnotatedImage(annotatedImageData, feedback);
-                    }
-                    
                     feedbackInput.value = '';
                     // Auto-close modal after sending feedback
                     closeModal();
@@ -1723,81 +1710,8 @@ class ParticipantInterface {
             this.addCircleToSVG(svg, circle);
         }
     }
-    
-    // 生成带标注的图片
-    async generateAnnotatedImage(imageElement, svgElement, circles) {
-        return new Promise((resolve) => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            
-            // 设置画布尺寸与图片相同
-            canvas.width = imageElement.naturalWidth;
-            canvas.height = imageElement.naturalHeight;
-            
-            // 计算缩放比例
-            const scaleX = imageElement.naturalWidth / imageElement.offsetWidth;
-            const scaleY = imageElement.naturalHeight / imageElement.offsetHeight;
-            
-            // 绘制原图
-            ctx.drawImage(imageElement, 0, 0);
-            
-            // 绘制圆圈标注
-            ctx.strokeStyle = '#ff6b35';
-            ctx.lineWidth = 3 * Math.min(scaleX, scaleY); // 根据缩放调整线宽
-            ctx.fillStyle = 'rgba(255, 107, 53, 0.1)';
-            
-            circles.forEach(circle => {
-                const scaledX = circle.x * scaleX;
-                const scaledY = circle.y * scaleY;
-                const scaledRadius = circle.radius * Math.min(scaleX, scaleY);
-                
-                ctx.beginPath();
-                ctx.arc(scaledX, scaledY, scaledRadius, 0, 2 * Math.PI);
-                ctx.fill();
-                ctx.stroke();
-            });
-            
-            // 转换为base64数据
-            const imageData = canvas.toDataURL('image/png');
-            resolve(imageData);
-        });
-     }
-     
-     // 发送标注图片
-     async sendAnnotatedImage(imageData, feedback) {
-         try {
-             // 将base64数据转换为Blob
-             const base64Data = imageData.split(',')[1];
-             const byteCharacters = atob(base64Data);
-             const byteNumbers = new Array(byteCharacters.length);
-             for (let i = 0; i < byteCharacters.length; i++) {
-                 byteNumbers[i] = byteCharacters.charCodeAt(i);
-             }
-             const byteArray = new Uint8Array(byteNumbers);
-             const blob = new Blob([byteArray], { type: 'image/png' });
-             
-             // 创建File对象
-             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-             const fileName = `annotated-feedback-${timestamp}.png`;
-             const file = new File([blob], fileName, { type: 'image/png' });
-             
-             // 使用现有的文件上传逻辑
-             await this.uploadFile(file);
-             
-             // 添加文件通知消息
-             this.addFileNotificationMessage({
-                 type: 'image_annotation',
-                 fileName: fileName,
-                 message: `Image annotation for feedback: "${feedback}"`
-             });
-             
-         } catch (error) {
-             console.error('Failed to send annotated image:', error);
-             throw error;
-         }
-     }
- 
-     // 清理资源
+
+    // 清理资源
     destroy() {
         if (this.pollInterval) {
             clearInterval(this.pollInterval);
