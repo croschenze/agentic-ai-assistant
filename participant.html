@@ -194,100 +194,64 @@
                 
                 <!-- 图片编辑设置模块 -->
                 <div id="image-settings" class="settings-module">
-                    <div class="setting-group">
-                        <button id="transform-mode-btn" class="transform-btn">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M15 4V2a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v2"></path>
-                                <path d="M7 4h10l4 6s-1 6-4 6H7l-4-6s1-6 4-6Z"></path>
-                            </svg>
-                            转换模式
-                        </button>
-                    </div>
+                    <!-- IMAGE SIZE Section -->
+                    <div class="section-title">IMAGE SIZE</div>
                     
+                    <!-- Width 参数 -->
                     <div class="setting-group">
-                        <label class="setting-label">尺寸调节</label>
-                        <div class="dimension-container">
-                            <div class="dimension-input">
-                                <label class="dimension-label">宽</label>
-                                <input type="number" id="width-input" class="dimension-field" value="1024" disabled>
+                        <label class="setting-label" id="width-label">Width</label>
+                        <div class="slider-container">
+                            <div class="slider-wrapper">
+                                <input type="range" id="width-slider" class="slider" min="0" max="4000" value="1920" step="1">
                             </div>
-                            <button id="aspect-ratio-lock" class="lock-btn locked" title="等比例锁定">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                                </svg>
-                            </button>
-                            <div class="dimension-input">
-                                <label class="dimension-label">高</label>
-                                <input type="number" id="height-input" class="dimension-field" value="1024" disabled>
-                            </div>
-                        </div>
-                        <div class="dimension-description" id="dimension-description">等比例锁定</div>
-                    </div>
-                    
-                    <div class="setting-group">
-                        <label class="setting-label" for="file-size-input">文件大小</label>
-                        <div class="file-size-container">
-                            <input type="text" id="file-size-input" class="file-size-input" value="1MB">
-                            <div class="preset-buttons">
-                                <button class="preset-btn" data-size="500KB">500KB</button>
-                                <button class="preset-btn" data-size="1MB">1MB</button>
-                            </div>
+                            <input type="number" id="width-input" class="slider-input-top" min="0" max="4000" value="1920">
                         </div>
                     </div>
                     
+                    <!-- Height 参数 -->
                     <div class="setting-group">
-                        <label class="setting-label" for="image-count-input">出图张数</label>
-                        <input type="number" id="image-count-input" class="count-input" min="1" max="10" value="1">
+                        <label class="setting-label" id="height-label">Height</label>
+                        <div class="slider-container">
+                            <div class="slider-wrapper">
+                                <input type="range" id="height-slider" class="slider" min="0" max="4000" value="1080" step="1">
+                            </div>
+                            <input type="number" id="height-input" class="slider-input-top" min="0" max="4000" value="1080">
+                        </div>
                     </div>
                     
+                    <!-- Sampling steps 参数 -->
                     <div class="setting-group">
-                        <label class="setting-label">局部修改</label>
-                        <button id="local-modify-btn" class="local-modify-btn">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M15 4V2a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v2"></path>
-                                <path d="M7 4h10l4 6s-1 6-4 6H7l-4-6s1-6 4-6Z"></path>
-                            </svg>
-                            选择修改区域
-                        </button>
-                        
-                        <!-- 编辑模式控制面板 -->
-                        <div id="edit-controls" class="edit-controls" style="display: none;">
-                            <div class="edit-toolbar">
-                                <div class="zoom-controls">
-                                    <button class="edit-btn" id="zoom-in-btn" title="放大">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <circle cx="11" cy="11" r="8"></circle>
-                                            <path d="M21 21l-4.35-4.35"></path>
-                                            <line x1="11" y1="8" x2="11" y2="14"></line>
-                                            <line x1="8" y1="11" x2="14" y2="11"></line>
-                                        </svg>
-                                    </button>
-                                    <button class="edit-btn" id="zoom-out-btn" title="缩小">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <circle cx="11" cy="11" r="8"></circle>
-                                            <path d="M21 21l-4.35-4.35"></path>
-                                            <line x1="8" y1="11" x2="14" y2="11"></line>
-                                        </svg>
-                                    </button>
-                                </div>
-                                <div class="action-controls">
-                                    <button class="edit-btn" id="undo-btn" title="撤回">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M3 7v6h6"></path>
-                                            <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
-                                        </svg>
-                                    </button>
-                                    <button class="edit-btn" id="save-btn" title="保存">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                                            <polyline points="17,21 17,13 7,13 7,21"></polyline>
-                                            <polyline points="7,3 7,8 15,8"></polyline>
-                                        </svg>
-                                    </button>
-                                </div>
+                        <label class="setting-label" id="sampling-steps-label">Sampling steps</label>
+                        <div class="slider-container">
+                            <div class="slider-wrapper">
+                                <input type="range" id="sampling-steps-slider" class="slider" min="0" max="100" value="19" step="1">
                             </div>
-                            <div class="edit-instruction">点击图片选择修改区域</div>
+                            <input type="number" id="sampling-steps-input" class="slider-input-top" min="0" max="100" value="19">
+                        </div>
+                    </div>
+                    
+                    <!-- BATCH Section -->
+                    <div class="section-title">BATCH</div>
+                    
+                    <!-- Batch count 参数 -->
+                    <div class="setting-group">
+                        <label class="setting-label" id="batch-count-label">Batch count</label>
+                        <div class="slider-container">
+                            <div class="slider-wrapper">
+                                <input type="range" id="batch-count-slider" class="slider" min="0" max="100" value="5" step="1">
+                            </div>
+                            <input type="number" id="batch-count-input" class="slider-input-top" min="0" max="100" value="5">
+                        </div>
+                    </div>
+                    
+                    <!-- Batch size 参数 -->
+                    <div class="setting-group">
+                        <label class="setting-label" id="batch-size-label">Batch size</label>
+                        <div class="slider-container">
+                            <div class="slider-wrapper">
+                                <input type="range" id="batch-size-slider" class="slider" min="0" max="100" value="1" step="1">
+                            </div>
+                            <input type="number" id="batch-size-input" class="slider-input-top" min="0" max="100" value="1">
                         </div>
                     </div>
                 </div>

@@ -398,6 +398,83 @@ body {
     transform: translateX(26px);
 }
 
+/* 小标题样式 */
+.section-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #4a5568;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 20px 0 15px 0;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.section-title:first-child {
+    margin-top: 0;
+}
+
+/* 滑块容器样式调整 */
+.slider-container {
+    position: relative;
+    margin-bottom: 25px;
+}
+
+/* 滑块+数字输入组合样式 */
+.slider-input-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.slider-input {
+    width: 60px;
+    padding: 4px 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 12px;
+    text-align: center;
+    background: #f8f9fa;
+    transition: border-color 0.2s ease;
+}
+
+/* 右上方数字输入框样式 */
+.slider-input-top {
+    position: absolute;
+    top: -8px;
+    right: 0;
+    width: 50px;
+    padding: 3px 6px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 11px;
+    text-align: center;
+    background: #f8f9fa;
+    transition: border-color 0.2s ease;
+    z-index: 10;
+}
+
+.slider-input:focus,
+.slider-input-top:focus {
+    outline: none;
+    border-color: #667eea;
+    background: white;
+}
+
+.slider-input::-webkit-outer-spin-button,
+.slider-input::-webkit-inner-spin-button,
+.slider-input-top::-webkit-outer-spin-button,
+.slider-input-top::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.slider-input[type=number],
+.slider-input-top[type=number] {
+    -moz-appearance: textfield;
+}
+
 .switch-description {
     font-size: 11px;
     color: #666;
