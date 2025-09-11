@@ -725,9 +725,12 @@ class ParticipantInterface {
             
             // 提取纯Base64内容（去除data:type;base64,前缀）
             let fileContent = fileContentWithPrefix;
-            if (fileContentWithPrefix && fileContentWithPrefix.includes(',')) {
+            if (fileContentWithPrefix && typeof fileContentWithPrefix === 'string' && fileContentWithPrefix.includes(',')) {
                 fileContent = fileContentWithPrefix.split(',')[1];
                 console.log('已提取纯Base64内容，长度:', fileContent.length);
+            } else if (!fileContentWithPrefix) {
+                console.error('文件内容读取失败，fileContentWithPrefix为空');
+                throw new Error('文件内容读取失败');
             }
             
             // 创建文件数据对象
@@ -819,9 +822,23 @@ class ParticipantInterface {
     
     readFileAsBase64(file) {
         return new Promise((resolve, reject) => {
+            if (!file) {
+                reject(new Error('File is null or undefined'));
+                return;
+            }
+            
             const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = reject;
+            reader.onload = () => {
+                const result = reader.result;
+                if (!result || typeof result !== 'string') {
+                    reject(new Error('Failed to read file as base64 - invalid result'));
+                    return;
+                }
+                resolve(result);
+            };
+            reader.onerror = () => {
+                reject(new Error('FileReader error: ' + (reader.error ? reader.error.message : 'Unknown error')));
+            };
             reader.readAsDataURL(file);
         });
     }
@@ -1508,19 +1525,21 @@ class ParticipantInterface {
             const feedback = feedbackInput.value.trim();
             if (feedback && this.sessionId && this.comm) {
                 try {
-                    // 如果有圆圈标注，生成标注图片
-                    let annotatedImageData = null;
-                    if (circles.length > 0) {
-                        annotatedImageData = await this.generateAnnotatedImage(fullImage, svgCanvas, circles);
-                    }
-                    
                     // 发送反馈消息
                     await this.saveParticipantMessage(feedback);
                     this.addMessage('user', feedback);
                     
-                    // 如果有标注图片，也发送图片
-                    if (annotatedImageData) {
-                        await this.sendAnnotatedImage(annotatedImageData, feedback);
+                    // 如果有圆圈标注，生成标注图片
+                    if (circles.length > 0) {
+                        try {
+                            const annotatedImageData = await this.generateAnnotatedImage(fullImage, svgCanvas, circles);
+                            if (annotatedImageData) {
+                                await this.sendAnnotatedImage(annotatedImageData, feedback);
+                            }
+                        } catch (imageError) {
+                            console.error('Failed to send annotated image:', imageError);
+                            // 图片发送失败不影响文字反馈的发送，只记录错误
+                        }
                     }
                     
                     feedbackInput.value = '';
