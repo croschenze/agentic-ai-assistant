@@ -113,9 +113,9 @@ class ParticipantInterface {
                 batchCount: '批次数',
                 batchSize: '批次大小',
                 // 提示框文本
-                creativityTooltip: '智能体在执行任务时被允许的创意发散程度',
-                personalityTooltip: '智能体在提供回答时使用的语言风格',
-                workingStyleTooltip: '智能体在执行任务时被允许的自主能动程度'
+                creativityTooltip: '当前智能体在执行任务时被允许的创意发散程度',
+                personalityTooltip: '当前智能体在提供回答时使用的语言风格',
+                workingStyleTooltip: '当前智能体在执行任务时被允许的自主能动程度'
             }
         };
         
