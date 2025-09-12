@@ -1806,13 +1806,6 @@ class ParticipantInterface {
              // 使用现有的文件上传逻辑
              await this.uploadFile(file);
              
-             // 添加文件通知消息
-             this.addFileNotificationMessage({
-                 type: 'image_annotation',
-                 fileName: fileName,
-                 message: `Image annotation for feedback: "${feedback}"`
-             });
-             
          } catch (error) {
              console.error('Failed to send annotated image:', error);
              throw error;
