@@ -57,7 +57,11 @@ class ParticipantInterface {
                 height: 'Height',
                 samplingSteps: 'Sampling Steps',
                 batchCount: 'Batch Count',
-                batchSize: 'Batch Size'
+                batchSize: 'Batch Size',
+                // 提示框文本
+                creativityTooltip: 'The degree of creative divergence allowed for the agent when executing tasks',
+                personalityTooltip: 'The language style used by the agent when providing responses',
+                workingStyleTooltip: 'The degree of autonomous initiative allowed for the agent when executing tasks'
             },
             zh: {
                  title: 'AI 助手',
@@ -107,7 +111,11 @@ class ParticipantInterface {
                 height: '高度',
                 samplingSteps: '采样',
                 batchCount: '批次数',
-                batchSize: '批次大小'
+                batchSize: '批次大小',
+                // 提示框文本
+                creativityTooltip: '智能体在执行任务时被允许的创意发散程度',
+                personalityTooltip: '智能体在提供回答时使用的语言风格',
+                workingStyleTooltip: '智能体在执行任务时被允许的自主能动程度'
             }
         };
         
@@ -1109,6 +1117,9 @@ class ParticipantInterface {
                 title.textContent = this.t(titleKeys[index]);
             }
         });
+        
+        // 重新设置提示框以更新语言
+        setupTooltips();
     }
     
     // 处理发送消息
@@ -1799,6 +1810,7 @@ function initializeControlPanel() {
     setupModeToggle();
     setupSliders();
     setupImageSettings();
+    setupTooltips();
 }
 
 // 设置模式切换
@@ -1844,6 +1856,18 @@ function setupModeToggle() {
     });
 }
 
+// 计算滑块显示值的函数
+function calculateSliderDisplayValue(rawValue) {
+    // 原始值范围：0-10，中间点是5
+    // 显示值逻辑：中间点为0，两端都为5
+    // 0-5映射到5-0，6-10映射到1-5
+    if (rawValue <= 5) {
+        return 5 - rawValue; // 5,4,3,2,1,0
+    } else {
+        return rawValue - 5; // 1,2,3,4,5
+    }
+}
+
 // 设置滑块
 function setupSliders() {
     // Creativity 滑块
@@ -1852,8 +1876,9 @@ function setupSliders() {
     
     if (creativitySlider && creativityValue) {
         creativitySlider.addEventListener('input', function() {
-            const value = parseInt(this.value);
-            creativityValue.textContent = value;
+            const rawValue = parseInt(this.value);
+            const displayValue = calculateSliderDisplayValue(rawValue);
+            creativityValue.textContent = displayValue;
         });
     }
     
@@ -1863,8 +1888,9 @@ function setupSliders() {
     
     if (personalitySlider && personalityValue) {
         personalitySlider.addEventListener('input', function() {
-            const value = parseInt(this.value);
-            personalityValue.textContent = value;
+            const rawValue = parseInt(this.value);
+            const displayValue = calculateSliderDisplayValue(rawValue);
+            personalityValue.textContent = displayValue;
         });
     }
     
@@ -1874,8 +1900,9 @@ function setupSliders() {
     
     if (workstyleSlider && workstyleValue) {
         workstyleSlider.addEventListener('input', function() {
-            const value = parseInt(this.value);
-            workstyleValue.textContent = value;
+            const rawValue = parseInt(this.value);
+            const displayValue = calculateSliderDisplayValue(rawValue);
+            workstyleValue.textContent = displayValue;
         });
     }
 }
@@ -1945,6 +1972,55 @@ function setupImageSettings() {
     imageSliders.forEach(setupSliderInputSync);
     
     console.log('Image settings initialized');
+}
+
+// 设置提示框功能
+function setupTooltips() {
+    const helpIcons = document.querySelectorAll('.help-icon');
+    
+    helpIcons.forEach(icon => {
+        let tooltip = null;
+        
+        icon.addEventListener('mouseenter', function() {
+            const tooltipKey = this.getAttribute('data-tooltip');
+            if (!tooltipKey) return;
+            
+            // 创建提示框
+            tooltip = document.createElement('div');
+            tooltip.className = 'tooltip';
+            
+            // 获取对应的提示文本
+            const tooltipText = window.participantInterface ? 
+                window.participantInterface.t(tooltipKey + 'Tooltip') : 
+                (tooltipKey === 'creativity' ? '智能体在执行任务时被允许的创意发散程度' :
+                 tooltipKey === 'personality' ? '智能体在提供回答时使用的语言风格' :
+                 tooltipKey === 'workingStyle' ? '智能体在执行任务时被允许的自主能动程度' : '');
+            
+            tooltip.textContent = tooltipText;
+            
+            // 添加到图标容器
+            this.appendChild(tooltip);
+            
+            // 显示提示框
+            setTimeout(() => {
+                if (tooltip) {
+                    tooltip.classList.add('show');
+                }
+            }, 50);
+        });
+        
+        icon.addEventListener('mouseleave', function() {
+            if (tooltip) {
+                tooltip.classList.remove('show');
+                setTimeout(() => {
+                    if (tooltip && tooltip.parentNode) {
+                        tooltip.parentNode.removeChild(tooltip);
+                    }
+                    tooltip = null;
+                }, 200);
+            }
+        });
+    });
 }
 
 // 页面卸载时清理资源
