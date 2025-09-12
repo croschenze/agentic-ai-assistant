@@ -59,9 +59,9 @@ class ParticipantInterface {
                 batchCount: 'Batch Count',
                 batchSize: 'Batch Size',
                 // 提示框文本
-                creativityTooltip: 'The degree of creative divergence allowed for the agent when executing tasks',
-                personalityTooltip: 'The language style used by the agent when providing responses',
-                workingStyleTooltip: 'The degree of autonomous initiative allowed for the agent when executing tasks'
+                creativityTooltip: 'The degree of creative divergence allowed for the current agent',
+                personalityTooltip: 'The language style used by the current agent',
+                workingStyleTooltip: 'The degree of autonomous initiative allowed for the current agent'
             },
             zh: {
                  title: 'AI 助手',
