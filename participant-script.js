@@ -1612,8 +1612,45 @@ class ParticipantInterface {
         
         // 图片加载完成后设置SVG尺寸
         fullImage.onload = () => {
-            svgCanvas.setAttribute('width', fullImage.offsetWidth);
-            svgCanvas.setAttribute('height', fullImage.offsetHeight);
+            // 等待图片完全渲染后再设置SVG尺寸
+            setTimeout(() => {
+                const imgRect = fullImage.getBoundingClientRect();
+                const containerRect = imageContainer.getBoundingClientRect();
+                
+                // 计算图片在容器中的实际显示尺寸和位置
+                const imgAspectRatio = fullImage.naturalWidth / fullImage.naturalHeight;
+                const containerAspectRatio = containerRect.width / containerRect.height;
+                
+                let displayWidth, displayHeight, offsetX, offsetY;
+                
+                if (imgAspectRatio > containerAspectRatio) {
+                    // 图片更宽，以宽度为准
+                    displayWidth = containerRect.width;
+                    displayHeight = containerRect.width / imgAspectRatio;
+                    offsetX = 0;
+                    offsetY = (containerRect.height - displayHeight) / 2;
+                } else {
+                    // 图片更高，以高度为准
+                    displayHeight = containerRect.height;
+                    displayWidth = containerRect.height * imgAspectRatio;
+                    offsetX = (containerRect.width - displayWidth) / 2;
+                    offsetY = 0;
+                }
+                
+                // 设置SVG画布尺寸和位置
+                svgCanvas.setAttribute('width', containerRect.width);
+                svgCanvas.setAttribute('height', containerRect.height);
+                svgCanvas.style.width = containerRect.width + 'px';
+                svgCanvas.style.height = containerRect.height + 'px';
+                
+                // 存储图片的实际显示信息，供后续坐标转换使用
+                fullImage._displayInfo = {
+                    displayWidth,
+                    displayHeight,
+                    offsetX,
+                    offsetY
+                };
+            }, 50);
         };
         
         document.body.appendChild(modal);
@@ -1685,28 +1722,62 @@ class ParticipantInterface {
             canvas.width = imageElement.naturalWidth;
             canvas.height = imageElement.naturalHeight;
             
-            // 计算缩放比例
-            const scaleX = imageElement.naturalWidth / imageElement.offsetWidth;
-            const scaleY = imageElement.naturalHeight / imageElement.offsetHeight;
-            
-            // 绘制原图
-            ctx.drawImage(imageElement, 0, 0);
-            
-            // 绘制圆圈标注
-            ctx.strokeStyle = '#ff6b35';
-            ctx.lineWidth = 3 * Math.min(scaleX, scaleY); // 根据缩放调整线宽
-            ctx.fillStyle = 'rgba(255, 107, 53, 0.1)';
-            
-            circles.forEach(circle => {
-                const scaledX = circle.x * scaleX;
-                const scaledY = circle.y * scaleY;
-                const scaledRadius = circle.radius * Math.min(scaleX, scaleY);
+            // 获取图片的实际显示信息
+            const displayInfo = imageElement._displayInfo;
+            if (!displayInfo) {
+                console.error('图片显示信息未找到，使用默认缩放');
+                // 回退到原有逻辑
+                const scaleX = imageElement.naturalWidth / imageElement.offsetWidth;
+                const scaleY = imageElement.naturalHeight / imageElement.offsetHeight;
                 
-                ctx.beginPath();
-                ctx.arc(scaledX, scaledY, scaledRadius, 0, 2 * Math.PI);
-                ctx.fill();
-                ctx.stroke();
-            });
+                // 绘制原图
+                ctx.drawImage(imageElement, 0, 0);
+                
+                // 绘制圆圈标注（使用与SVG相同的颜色）
+                 ctx.strokeStyle = 'orange';
+                 ctx.lineWidth = 2 * Math.min(scaleX, scaleY);
+                 ctx.fillStyle = 'rgba(255, 165, 0, 0.2)';
+                
+                circles.forEach(circle => {
+                    const scaledX = circle.x * scaleX;
+                    const scaledY = circle.y * scaleY;
+                    const scaledRadius = circle.radius * Math.min(scaleX, scaleY);
+                    
+                    ctx.beginPath();
+                    ctx.arc(scaledX, scaledY, scaledRadius, 0, 2 * Math.PI);
+                    ctx.fill();
+                    ctx.stroke();
+                });
+            } else {
+                // 使用正确的坐标转换
+                const scaleX = imageElement.naturalWidth / displayInfo.displayWidth;
+                const scaleY = imageElement.naturalHeight / displayInfo.displayHeight;
+                
+                // 绘制原图
+                ctx.drawImage(imageElement, 0, 0);
+                
+                // 绘制圆圈标注（使用与SVG相同的颜色）
+                 ctx.strokeStyle = 'orange';
+                 ctx.lineWidth = 2 * Math.min(scaleX, scaleY);
+                 ctx.fillStyle = 'rgba(255, 165, 0, 0.2)';
+                
+                circles.forEach(circle => {
+                    // 调整坐标：减去图片在容器中的偏移，然后缩放到原图尺寸
+                    const adjustedX = (circle.x - displayInfo.offsetX) * scaleX;
+                    const adjustedY = (circle.y - displayInfo.offsetY) * scaleY;
+                    const adjustedRadius = circle.radius * Math.min(scaleX, scaleY);
+                    
+                    // 确保坐标在图片范围内
+                    if (adjustedX >= 0 && adjustedX <= imageElement.naturalWidth &&
+                        adjustedY >= 0 && adjustedY <= imageElement.naturalHeight &&
+                        adjustedRadius > 0) {
+                        ctx.beginPath();
+                        ctx.arc(adjustedX, adjustedY, adjustedRadius, 0, 2 * Math.PI);
+                        ctx.fill();
+                        ctx.stroke();
+                    }
+                });
+            }
             
             // 转换为base64数据
             const imageData = canvas.toDataURL('image/png');
