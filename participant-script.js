@@ -187,17 +187,60 @@ class ParticipantInterface {
     }
 
     async initializeSession() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const sessionIdFromUrl = urlParams.get('sessionId');
+        // 检查URL hash中的会话ID
+        let sessionIdFromUrl = null;
+        
+        // 首先检查hash（#WOZ-5VBY4ZYD格式）
+        if (window.location.hash) {
+            const hashSessionId = window.location.hash.substring(1); // 移除#号
+            if (hashSessionId.startsWith('WOZ-') && hashSessionId.length === 12) {
+                sessionIdFromUrl = hashSessionId;
+            }
+        }
+        
+        // 如果hash中没有，再检查查询参数
+        if (!sessionIdFromUrl) {
+            const urlParams = new URLSearchParams(window.location.search);
+            sessionIdFromUrl = urlParams.get('sessionId');
+        }
 
         if (sessionIdFromUrl) {
             this.sessionId = sessionIdFromUrl;
-            if (this.sessionJoinContainer) this.sessionJoinContainer.style.display = 'none';
-            if (this.chatContainer) this.chatContainer.style.display = 'flex';
-            if (this.sessionIdSpan) this.sessionIdSpan.textContent = this.sessionId;
             
-            // 可以在这里加载聊天记录或执行其他会话相关的设置
-            console.log(`成功加入会话: ${this.sessionId}`);
+            // 尝试加入会话
+            try {
+                const joinSuccess = await this.comm.joinSession(this.sessionId);
+                
+                if (joinSuccess) {
+                    if (this.sessionJoinContainer) this.sessionJoinContainer.style.display = 'none';
+                    if (this.chatContainer) this.chatContainer.style.display = 'flex';
+                    if (this.sessionIdSpan) this.sessionIdSpan.textContent = this.sessionId;
+                    
+                    // 设置通信监听
+                    this.setupCommunication();
+                    
+                    // 启用发送按钮和输入框
+                    if (this.sendButton) {
+                        this.sendButton.disabled = false;
+                    }
+                    if (this.messageInput) {
+                        this.messageInput.disabled = false;
+                        this.messageInput.placeholder = this.t('placeholder');
+                    }
+                    
+                    console.log(`成功加入会话: ${this.sessionId}`);
+                } else {
+                    console.error('加入会话失败');
+                    // 显示会话加入界面
+                    if (this.sessionJoinContainer) this.sessionJoinContainer.style.display = 'flex';
+                    if (this.chatContainer) this.chatContainer.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('加入会话时出错:', error);
+                // 显示会话加入界面
+                if (this.sessionJoinContainer) this.sessionJoinContainer.style.display = 'flex';
+                if (this.chatContainer) this.chatContainer.style.display = 'none';
+            }
             
         } else {
             if (this.sessionJoinContainer) this.sessionJoinContainer.style.display = 'flex';
@@ -234,7 +277,7 @@ class ParticipantInterface {
 
         const avatar = document.createElement('div');
         avatar.classList.add('message-avatar');
-        avatar.textContent = this.t('wizard').charAt(0);
+        avatar.textContent = 'AI';
 
         const contentWrapper = document.createElement('div');
         contentWrapper.classList.add('message-content');
@@ -340,8 +383,8 @@ class ParticipantInterface {
         avatar.classList.add('message-avatar');
         if (sender === 'user') {
             avatar.textContent = this.t('participant').charAt(0);
-        } else if (sender === 'ai') {
-            avatar.textContent = this.t('wizard').charAt(0);
+        } else {
+            avatar.textContent = 'AI';
         }
 
         const contentWrapper = document.createElement('div');
@@ -368,93 +411,7 @@ class ParticipantInterface {
         this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
     }
     
-    addFileNotificationMessage(message) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = 'message ai file-notification';
-        
-        // 创建头像
-        const avatarDiv = document.createElement('div');
-        avatarDiv.className = 'message-avatar';
-        avatarDiv.textContent = 'AI';
-        messageDiv.appendChild(avatarDiv);
-        
-        // 创建消息内容容器
-        const contentContainer = document.createElement('div');
-        contentContainer.className = 'message-content';
-        
-        const bubbleDiv = document.createElement('div');
-        bubbleDiv.className = 'message-bubble file-bubble';
-        
-        // 创建文件信息显示
-        const fileInfo = document.createElement('div');
-        fileInfo.className = 'file-info';
-        
-        const fileIcon = document.createElement('div');
-        fileIcon.className = 'file-icon';
-        fileIcon.textContent = this.getFileIcon(message.fileType);
-        
-        const fileDetails = document.createElement('div');
-        fileDetails.className = 'file-details';
-        
-        const fileName = document.createElement('div');
-        fileName.className = 'file-name';
-        fileName.textContent = message.fileName;
-        
-        const fileSize = document.createElement('div');
-        fileSize.className = 'file-size';
-        fileSize.textContent = this.formatFileSize(message.fileSize);
-        
-        // 移除文件消息内容显示
-        // const fileMessage = document.createElement('div');
-        // fileMessage.className = 'file-message';
-        // fileMessage.textContent = message.content;
-        
-        fileDetails.appendChild(fileName);
-        fileDetails.appendChild(fileSize);
-        
-        fileInfo.appendChild(fileIcon);
-        fileInfo.appendChild(fileDetails);
-        
-        // 检查是否是图片文件
-        const fileType = message.fileType || message.type;
-        const isImage = fileType && fileType.startsWith('image/');
-        console.log('文件类型检查 (第二个方法):', { fileType, isImage, message });
-        
-        if (isImage) {
-            // 创建图片预览容器
-            const imagePreviewContainer = document.createElement('div');
-            imagePreviewContainer.classList.add('image-preview-container');
-            
-            // 添加加载指示器
-            const loadingIndicator = document.createElement('div');
-            loadingIndicator.classList.add('loading-indicator');
-            loadingIndicator.textContent = '加载图片中...';
-            imagePreviewContainer.appendChild(loadingIndicator);
-            
-            // 异步加载图片预览
-            this.loadImagePreview(message.fileId, imagePreviewContainer, loadingIndicator);
-            
-            bubbleDiv.appendChild(imagePreviewContainer);
-        } else {
-            bubbleDiv.appendChild(fileInfo);
-            
-            // 创建下载按钮
-            const downloadButton = document.createElement('button');
-            downloadButton.className = 'download-button';
-            downloadButton.textContent = '下载文件';
-            downloadButton.onclick = () => this.downloadFile(message.fileId, message.fileName);
-            
-            bubbleDiv.appendChild(downloadButton);
-        }
-        
-        contentContainer.appendChild(bubbleDiv);
-        messageDiv.appendChild(contentContainer);
-        
-        this.chatMessages.appendChild(messageDiv);
-        this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
-        
-        console.log('文件通知消息已添加到聊天界面');
-    }
+
     
     setupEventListeners() {
         if (this.sendButton) {
