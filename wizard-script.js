@@ -36,7 +36,7 @@ class WizardController {
         
         debugLog('Starting session loading');
         await this.loadSessions();
-        debugLog('Session loading completed');}]}}}
+        debugLog('Session loading completed');
         
         debugLog('Starting polling');
         this.startPolling();
@@ -516,7 +516,7 @@ class WizardController {
             // 创建头像
             const avatarDiv = document.createElement('div');
             avatarDiv.className = 'message-avatar';
-            avatarDiv.textContent = message.sender === 'participant' ? 'P' : 'W';
+            avatarDiv.textContent = message.sender === 'participant' ? 'P' : 'AI';
             messageDiv.appendChild(avatarDiv);
             
             // 创建消息内容容器
@@ -1298,7 +1298,7 @@ class WizardController {
             this.showNotification('Storage space cleared, data saved successfully', 'success');
         } catch (retryError) {
             console.error('清理后仍然无法保存:', retryError);
-            this.showNotification('Insufficient storage space, please manually clear browser data', 'error');}]}}}
+            this.showNotification('Insufficient storage space, please manually clear browser data', 'error');
         }
     }
 
@@ -1399,7 +1399,7 @@ class WizardController {
                 if (uploadedFilesSection) uploadedFilesSection.style.display = 'none';
             }
         } catch (error) {
-            console.error('Failed to load file list:', error);}]}}}
+            console.error('Failed to load file list:', error);
             if (uploadedFilesSection) uploadedFilesSection.style.display = 'none';
         }
     }
@@ -1612,7 +1612,7 @@ class WizardController {
             }
             debugLog('Set display state to: ' + fileUploadArea.style.display);
         } else {
-            debugLog('Error: Cannot find file upload area element');}]}}}
+            debugLog('Error: Cannot find file upload area element');
         }
     }
 
@@ -1678,7 +1678,7 @@ class WizardController {
         fileList.innerHTML = '';
         
         if (this.selectedFiles.length === 0) {
-            fileList.innerHTML = '<div class="no-files">No files selected</div>';}]}}}
+            fileList.innerHTML = '<div class="no-files">No files selected</div>';
             return;
         }
         
@@ -1779,7 +1779,7 @@ class WizardController {
             
         } catch (error) {
             debugLog('文件上传失败: ' + error.message);
-            this.showNotification('File upload failed: ' + error.message, 'error');}]}}}
+            this.showNotification('File upload failed: ' + error.message, 'error');
         }
     }
 
