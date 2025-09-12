@@ -38,7 +38,7 @@ class ParticipantInterface {
                 downloadFile: 'Download',
                 // 控制面板翻译
                 controlPanel: 'Control Panel',
-                aiPersonalitySettings: 'AI Personality Settings',
+                aiPersonalitySettings: 'AI Agent Settings',
                 textDialogSettings: 'Text Dialog Settings',
                 imageEditSettings: 'Image Edit Settings',
                 creativity: 'Creativity',
@@ -49,7 +49,15 @@ class ParticipantInterface {
                 calm: 'Calm',
                 energetic: 'Energetic',
                 executor: 'Executor',
-                initiator: 'Initiator'
+                initiator: 'Initiator',
+                // 图片编辑设置翻译
+                imageSize: 'IMAGE SIZE',
+                batch: 'BATCH',
+                width: 'Width',
+                height: 'Height',
+                samplingSteps: 'Sampling Steps',
+                batchCount: 'Batch Count',
+                batchSize: 'Batch Size'
             },
             zh: {
                  title: 'AI 助手',
@@ -80,7 +88,7 @@ class ParticipantInterface {
                 downloadFile: '下载文件',
                 // 控制面板翻译
                 controlPanel: '控制面板',
-                aiPersonalitySettings: 'AI 性格设置',
+                aiPersonalitySettings: 'AI 智能体设置',
                 textDialogSettings: '文本对话设置',
                 imageEditSettings: '图片编辑设置',
                 creativity: '创意指数',
@@ -91,7 +99,15 @@ class ParticipantInterface {
                 calm: '沉着',
                 energetic: '活泼',
                 executor: '执行',
-                initiator: '主导'
+                initiator: '主导',
+                // 图片编辑设置翻译
+                imageSize: '图片尺寸',
+                batch: '批次',
+                width: '宽度',
+                height: '高度',
+                samplingSteps: '采样',
+                batchCount: '批次数',
+                batchSize: '批次大小'
             }
         };
         
@@ -1077,6 +1093,22 @@ class ParticipantInterface {
             workstyleLabels[0].textContent = this.t('executor');
             workstyleLabels[1].textContent = this.t('initiator');
         }
+        
+        // 更新图片编辑设置语言
+        const imageSizeLabels = document.querySelectorAll('#image-settings .setting-label');
+        if (imageSizeLabels.length >= 2) {
+            imageSizeLabels[0].textContent = this.t('imageSize');
+            imageSizeLabels[1].textContent = this.t('batch');
+        }
+        
+        // 更新滑块标题
+        const sliderTitles = document.querySelectorAll('#image-settings .slider-title');
+        const titleKeys = ['width', 'height', 'samplingSteps', 'batchCount', 'batchSize'];
+        sliderTitles.forEach((title, index) => {
+            if (titleKeys[index]) {
+                title.textContent = this.t(titleKeys[index]);
+            }
+        });
     }
     
     // 处理发送消息
@@ -1850,116 +1882,69 @@ function setupSliders() {
 
 // 开关功能已移除，新设计只使用滑块
 
+// 滑块和输入框同步函数
+function setupSliderInputSync(config) {
+    const slider = document.getElementById(config.slider);
+    const input = document.getElementById(config.input);
+    
+    if (!slider || !input) {
+        console.warn(`Slider or input not found: ${config.slider}, ${config.input}`);
+        return;
+    }
+    
+    // 滑块变化时更新输入框
+    slider.addEventListener('input', function() {
+        input.value = this.value;
+    });
+    
+    // 输入框变化时更新滑块
+    input.addEventListener('input', function() {
+        const value = parseInt(this.value);
+        const min = parseInt(slider.min);
+        const max = parseInt(slider.max);
+        
+        // 验证输入值范围
+        if (value >= min && value <= max) {
+            slider.value = value;
+        } else if (value < min) {
+            this.value = min;
+            slider.value = min;
+        } else if (value > max) {
+            this.value = max;
+            slider.value = max;
+        }
+    });
+    
+    // 输入框失去焦点时验证
+    input.addEventListener('blur', function() {
+        const value = parseInt(this.value) || parseInt(slider.min);
+        const min = parseInt(slider.min);
+        const max = parseInt(slider.max);
+        
+        if (value < min) {
+            this.value = min;
+            slider.value = min;
+        } else if (value > max) {
+            this.value = max;
+            slider.value = max;
+        }
+    });
+}
+
 // 设置图片编辑功能
 function setupImageSettings() {
-    // 等比例锁定
-    const aspectRatioLock = document.getElementById('aspect-ratio-lock');
-    const widthInput = document.getElementById('width-input');
-    const heightInput = document.getElementById('height-input');
-    const dimensionDescription = document.getElementById('dimension-description');
+    // 设置图片编辑滑块同步
+    const imageSliders = [
+        { slider: 'width-slider', input: 'width-input' },
+        { slider: 'height-slider', input: 'height-input' },
+        { slider: 'sampling-steps-slider', input: 'sampling-steps-input' },
+        { slider: 'batch-count-slider', input: 'batch-count-input' },
+        { slider: 'batch-size-slider', input: 'batch-size-input' }
+    ];
     
-    let isLocked = true;
-    let aspectRatio = 1; // 1024/1024
+    imageSliders.forEach(setupSliderInputSync);
     
-    aspectRatioLock.addEventListener('click', function() {
-        isLocked = !isLocked;
-        
-        if (isLocked) {
-            this.classList.add('locked');
-            this.innerHTML = `
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                </svg>
-            `;
-            widthInput.disabled = true;
-            heightInput.disabled = true;
-            dimensionDescription.textContent = '等比例锁定';
-        } else {
-            this.classList.remove('locked');
-            this.innerHTML = `
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                    <path d="M7 11V7a5 5 0 0 1 5 0v4"></path>
-                </svg>
-            `;
-            widthInput.disabled = false;
-            heightInput.disabled = false;
-            dimensionDescription.textContent = '自由调节';
-        }
-    });
-    
-    // 文件大小预设按钮
-    const presetButtons = document.querySelectorAll('.preset-btn');
-    const fileSizeInput = document.getElementById('file-size-input');
-    
-    presetButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const size = this.getAttribute('data-size');
-            fileSizeInput.value = size;
-        });
-    });
-    
-    // 转换模式按钮
-    const transformModeBtn = document.getElementById('transform-mode-btn');
-    transformModeBtn.addEventListener('click', function() {
-        // 这里可以添加转换模式的逻辑
-        console.log('切换到编辑模式');
-    });
-    
-    // 局部修改按钮
-    const localModifyBtn = document.getElementById('local-modify-btn');
-    const editControls = document.getElementById('edit-controls');
-    
-    localModifyBtn.addEventListener('click', function() {
-        const isVisible = editControls.style.display !== 'none';
-        editControls.style.display = isVisible ? 'none' : 'block';
-        
-        if (!isVisible) {
-            this.textContent = '退出编辑';
-            this.style.background = 'linear-gradient(135deg, #dc3545, #c82333)';
-        } else {
-            this.innerHTML = `
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M15 4V2a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v2"></path>
-                    <path d="M7 4h10l4 6s-1 6-4 6H7l-4-6s1-6 4-6Z"></path>
-                </svg>
-                选择修改区域
-            `;
-            this.style.background = 'linear-gradient(135deg, #fd7e14, #e83e8c)';
-        }
-    });
-    
-    // 编辑工具按钮
-    const zoomInBtn = document.getElementById('zoom-in-btn');
-    const zoomOutBtn = document.getElementById('zoom-out-btn');
-    const undoBtn = document.getElementById('undo-btn');
-    const saveBtn = document.getElementById('save-btn');
-    
-    zoomInBtn.addEventListener('click', function() {
-        console.log('放大图片');
-    });
-    
-    zoomOutBtn.addEventListener('click', function() {
-        console.log('缩小图片');
-    });
-    
-    undoBtn.addEventListener('click', function() {
-        console.log('撤回操作');
-    });
-    
-    saveBtn.addEventListener('click', function() {
-        console.log('保存修改');
-        editControls.style.display = 'none';
-        localModifyBtn.innerHTML = `
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M15 4V2a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v2"></path>
-                <path d="M7 4h10l4 6s-1 6-4 6H7l-4-6s1-6 4-6Z"></path>
-            </svg>
-            选择修改区域
-        `;
-        localModifyBtn.style.background = 'linear-gradient(135deg, #fd7e14, #e83e8c)';
-    });
+    console.log('Image settings initialized');
 }
 
 // 页面卸载时清理资源

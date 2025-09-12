@@ -193,7 +193,7 @@ body {
     display: block;
     margin-bottom: 8px;
     color: #333;
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -231,17 +231,37 @@ body {
 
 /* 滑块样式 */
 .slider-container {
-    position: relative;
-    margin-bottom: 25px;
+    margin-bottom: 20px;
 }
 
-.slider-labels {
+.slider-header {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     margin-bottom: 8px;
-    font-size: 12px;
-    color: #666;
+}
+
+.slider-title {
+    font-size: 13px;
+    color: #333;
     font-weight: 500;
+}
+
+.slider-input {
+    width: 60px;
+    padding: 4px 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 12px;
+    text-align: center;
+    background: white;
+    color: #333;
+}
+
+.slider-input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 }
 
 .slider-wrapper {
@@ -249,50 +269,15 @@ body {
     margin-bottom: 8px;
 }
 
-.slider-ticks {
-    position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
-    height: 2px;
-    transform: translateY(-50%);
-    pointer-events: none;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 10px;
-    z-index: 1;
-}
-
-.tick {
-    width: 2px;
-    height: 8px;
-    background: #ccc;
-    border-radius: 1px;
-    display: block;
-}
-
-.slider-title {
-    text-align: center;
-    font-size: 13px;
-    font-weight: 600;
-    color: #4a5568;
-    margin-top: 8px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
 .slider {
     width: 100%;
     height: 6px;
     border-radius: 3px;
-    background: #e0e0e0;
+    background: #e9ecef;
     outline: none;
     -webkit-appearance: none;
     appearance: none;
     cursor: pointer;
-    position: relative;
-    z-index: 2;
 }
 
 .slider::-webkit-slider-thumb {
@@ -301,35 +286,73 @@ body {
     width: 18px;
     height: 18px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: #007bff;
     cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     transition: all 0.2s ease;
-    position: relative;
-    z-index: 3;
 }
 
 .slider::-webkit-slider-thumb:hover {
+    background: #0056b3;
     transform: scale(1.1);
-    box-shadow: 0 3px 6px rgba(0,0,0,0.3);
 }
 
 .slider::-moz-range-thumb {
     width: 18px;
     height: 18px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: #007bff;
     cursor: pointer;
-    border: none;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     transition: all 0.2s ease;
-    position: relative;
-    z-index: 3;
 }
 
 .slider::-moz-range-thumb:hover {
+    background: #0056b3;
     transform: scale(1.1);
-    box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+}
+
+.slider::-webkit-slider-track {
+    width: 100%;
+    height: 6px;
+    cursor: pointer;
+    background: #e9ecef;
+    border-radius: 3px;
+}
+
+.slider::-moz-range-track {
+    width: 100%;
+    height: 6px;
+    cursor: pointer;
+    background: #e9ecef;
+    border-radius: 3px;
+    border: none;
+}
+
+.slider-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    padding: 0 9px;
+    font-size: 12px;
+    color: #666;
+    font-weight: 500;
+}
+
+.slider-ticks {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 4px;
+    padding: 0 9px;
+}
+
+.tick {
+    width: 1px;
+    height: 4px;
+    background: #adb5bd;
+    opacity: 0.5;
 }
 
 .slider-value {
