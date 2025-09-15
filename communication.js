@@ -632,6 +632,66 @@ class WizardOfOzCommunication {
             responses: sessionData.aiResponses || []
         };
     }
+
+    // 删除会话（同时删除本地存储和Firebase）
+    async deleteSession(sessionId) {
+        try {
+            console.log('删除会话:', sessionId);
+            let success = true;
+            
+            // 1. 删除本地存储中的会话数据
+            const localKey = this.sessionPrefix + sessionId;
+            const fullKey = this.storagePrefix + localKey;
+            
+            // 从localStorage删除
+            if (localStorage.getItem(fullKey)) {
+                localStorage.removeItem(fullKey);
+                console.log('已从localStorage删除会话:', sessionId);
+            }
+            
+            // 从IndexedDB删除（如果使用混合存储）
+            if (this.hybridStorage && this.hybridStorage.indexedDBStorage) {
+                try {
+                    await this.hybridStorage.indexedDBStorage.removeData(localKey);
+                    console.log('已从IndexedDB删除会话:', sessionId);
+                } catch (error) {
+                    console.warn('从IndexedDB删除会话失败:', error);
+                }
+            }
+            
+            // 2. 删除Firebase中的会话数据
+            if (this.firebaseComm) {
+                try {
+                    const firebaseSuccess = await this.firebaseComm.deleteSession(sessionId);
+                    if (!firebaseSuccess) {
+                        console.warn('Firebase会话删除失败');
+                        success = false;
+                    }
+                } catch (error) {
+                    console.error('删除Firebase会话时出错:', error);
+                    success = false;
+                }
+            }
+            
+            // 3. 清理相关的本地缓存
+            const readKey = `session_read_${sessionId}_wizard`;
+            localStorage.removeItem(readKey);
+            
+            // 清理文件相关的localStorage缓存
+            for (let i = localStorage.length - 1; i >= 0; i--) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith(`file_content_${sessionId}_`)) {
+                    localStorage.removeItem(key);
+                }
+            }
+            
+            console.log(`会话 ${sessionId} 删除${success ? '成功' : '部分成功'}`);
+            return success;
+        } catch (error) {
+            console.error('删除会话失败:', error);
+            return false;
+        }
+    }
     
     // 获取统计信息
     getStatistics() {

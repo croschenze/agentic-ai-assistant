@@ -9,6 +9,7 @@ class FirebaseComm {
         this.currentSessionId = null;
         this.messageListeners = [];
         this.sessionListeners = [];
+        this.storageReady = false; // 添加storageReady属性以兼容wizard-script.js
     }
 
     // Get file data including content
@@ -126,6 +127,7 @@ class FirebaseComm {
             }
             
             this.database = window.FirebaseConfig.getDatabase();
+            this.storageReady = true; // 设置存储就绪状态
             console.log('Firebase communication module initialized');
             return true;
         } catch (error) {
@@ -622,6 +624,102 @@ class FirebaseComm {
         } catch (error) {
             console.error('Failed to get active sessions:', error);
             return [];
+        }
+    }
+
+    // Check if session has unread messages
+    async hasUnreadMessages(sessionId, wizardId = 'wizard') {
+        try {
+            const sessionData = await this.getSessionData(sessionId);
+            if (!sessionData || !sessionData.participantMessages || Object.keys(sessionData.participantMessages).length === 0) {
+                return false;
+            }
+            
+            // Get read status from localStorage (simple implementation)
+            const readKey = `session_read_${sessionId}_${wizardId}`;
+            const readData = localStorage.getItem(readKey);
+            
+            if (!readData) {
+                return true; // Never read before
+            }
+            
+            const lastReadTime = new Date(JSON.parse(readData).timestamp);
+            
+            // Check if there are any participant messages after the last read time
+            const participantMessages = Object.values(sessionData.participantMessages);
+            const hasNewerMessages = participantMessages.some(msg => 
+                new Date(msg.timestamp) > lastReadTime
+            );
+            
+            return hasNewerMessages;
+        } catch (error) {
+            console.error('Failed to check unread messages:', error);
+            return false;
+        }
+    }
+
+    // Mark session as read
+    async markSessionAsRead(sessionId, wizardId = 'wizard') {
+        try {
+            const readKey = `session_read_${sessionId}_${wizardId}`;
+            const readData = {
+                timestamp: new Date().toISOString(),
+                sessionId: sessionId,
+                wizardId: wizardId
+            };
+            localStorage.setItem(readKey, JSON.stringify(readData));
+            console.log(`Marked session ${sessionId} as read for ${wizardId}`);
+            return true;
+        } catch (error) {
+            console.error('Failed to mark session as read:', error);
+            return false;
+        }
+    }
+
+    // Delete session from Firebase
+    async deleteSession(sessionId) {
+        try {
+            if (!this.database) {
+                throw new Error('Firebase not initialized');
+            }
+
+            console.log('删除Firebase会话:', sessionId);
+            
+            // Delete session data
+            await this.database.ref(`sessions/${sessionId}`).remove();
+            
+            // Delete messages for this session
+            await this.database.ref(`messages/${sessionId}`).remove();
+            
+            // Delete files for this session if any
+            const filesSnapshot = await this.database.ref(`sessions/${sessionId}/files`).once('value');
+            if (filesSnapshot.exists()) {
+                // If using Firebase Storage, also delete files from storage
+                const files = filesSnapshot.val();
+                for (const fileId in files) {
+                    const fileData = files[fileId];
+                    if (fileData.isLargeFile && fileData.storagePath) {
+                        try {
+                            const storage = firebase.storage();
+                            const fileRef = storage.ref(fileData.storagePath);
+                            await fileRef.delete();
+                            console.log('删除Firebase Storage文件:', fileData.storagePath);
+                        } catch (storageError) {
+                            console.warn('删除Firebase Storage文件失败:', storageError);
+                        }
+                    }
+                }
+            }
+            
+            // Clean up read status from localStorage
+            const readKey = `session_read_${sessionId}_wizard`;
+            localStorage.removeItem(readKey);
+            
+            console.log(`会话 ${sessionId} 已从Firebase删除`);
+            return true;
+        } catch (error) {
+            console.error('删除Firebase会话失败:', error);
+            return false;
         }
     }
 }

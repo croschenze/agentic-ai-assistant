@@ -5,48 +5,6 @@
     font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro Display', sans-serif;
 }
 
-/* Loading Overlay */
-.loading-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(255, 255, 255, 0.95);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-    transition: opacity 0.3s ease;
-}
-
-.loading-spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #007bff;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-bottom: 16px;
-}
-
-.loading-text {
-    font-size: 16px;
-    color: #666;
-    font-weight: 500;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.loading-overlay.hidden {
-    opacity: 0;
-    pointer-events: none;
-}
-
 body {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
@@ -203,12 +161,18 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
+    cursor: pointer;
+    justify-content: space-between;
 }
 
 .avatar-selector {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
     gap: 6px;
+    max-height: 200px;
+    overflow: hidden;
+    transition: max-height 0.3s ease-in-out;
+    margin-top: 12px;
 }
 
 .avatar-btn {
@@ -240,6 +204,20 @@ body {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* Collapsible avatar selector styles */
+.avatar-selector-section.is-open #avatar-selector {
+    max-height: 200px;
+    margin-top: 12px;
+}
+
+.toggle-icon {
+    transition: transform 0.3s ease;
+}
+
+.avatar-selector-section.is-open .toggle-icon {
+    transform: rotate(180deg);
 }
 
 .avatar-btn img {
@@ -473,16 +451,126 @@ body {
     background: #f7fafc;
     border: 2px solid transparent;
     border-radius: 12px;
-    padding: 15px;
+    padding: 8px;
     margin-bottom: 10px;
     cursor: pointer;
     transition: all 0.2s ease;
     position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
 .session-item:hover {
     background: #edf2f7;
     transform: translateY(-1px);
+}
+
+.session-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 8px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    margin-bottom: 4px;
+}
+
+.session-checkbox {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: #4285f4;
+}
+
+.delete-session-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    color: #666;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.delete-session-btn:hover {
+    background: #fee;
+    color: #d32f2f;
+    transform: scale(1.1);
+}
+
+.session-content {
+    flex: 1;
+    cursor: pointer;
+}
+
+/* 批量删除控制界面样式 */
+.batch-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.batch-select {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.select-all-checkbox {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: #4285f4;
+}
+
+.batch-select label {
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+    user-select: none;
+}
+
+.batch-delete-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: #f44336;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.batch-delete-btn:hover:not(:disabled) {
+    background: #d32f2f;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
+}
+
+.batch-delete-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.batch-delete-btn svg {
+    width: 16px;
+    height: 16px;
 }
 
 .session-item.active {
@@ -500,17 +588,29 @@ body {
     border-left: 4px solid #4caf50;
 }
 
+.session-item .session-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
 .session-item .session-id {
     font-weight: 600;
     color: #2d3748;
     font-size: 14px;
 }
 
+.session-item .session-time {
+    color: #718096;
+    font-size: 12px;
+}
+
 .session-item .session-status {
     display: flex;
     align-items: center;
-    gap: 5px;
-    margin-top: 5px;
+    gap: 8px;
+    margin-bottom: 8px;
     font-size: 12px;
 }
 
@@ -519,46 +619,75 @@ body {
     height: 8px;
     border-radius: 50%;
     background: #48bb78;
+    flex-shrink: 0;
 }
 
 .session-item .status-dot.waiting {
     background: #ed8936;
 }
 
+.session-item .status-dot.active {
+    background: #48bb78;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(72, 187, 120, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 4px rgba(72, 187, 120, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(72, 187, 120, 0);
+    }
+}
+
+.session-item .status-text {
+    color: #4a5568;
+    font-weight: 500;
+    flex: 1;
+}
+
 .session-item .message-count {
-    position: absolute;
-    top: 10px;
-    right: 10px;
     background: #4299e1;
     color: white;
     border-radius: 10px;
     padding: 2px 8px;
     font-size: 11px;
     font-weight: 500;
+    min-width: 18px;
+    text-align: center;
 }
 
-.session-item .session-time {
-    color: #666;
-    font-size: 0.9em;
-    margin-top: 5px;
+.session-item .session-preview {
+    color: #718096;
+    font-size: 13px;
+    margin-bottom: 8px;
+    line-height: 1.4;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
 }
 
 .session-item .session-stats {
     display: flex;
-    gap: 10px;
-    margin-top: 5px;
-    font-size: 0.8em;
-    color: #888;
+    gap: 12px;
+    font-size: 12px;
+    color: #a0aec0;
 }
 
-.session-item .session-preview {
-    color: #666;
-    font-size: 0.85em;
-    margin-top: 5px;
+.session-item .session-stats span {
+    font-weight: 500;
+}
+
+.empty-sessions {
+    text-align: center;
+    color: #a0aec0;
+    padding: 40px 20px;
     font-style: italic;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    font-size: 14px;
 }
 
 .unread-indicator {

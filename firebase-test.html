@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase连接测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #0056b3; }
+        #log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 4px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔥 Firebase连接测试</h1>
+    
+    <div class="test-container">
+        <h2>连接状态</h2>
+        <div id="firebase-status" class="status info">正在检查Firebase连接...</div>
+        <div id="database-status" class="status info">正在检查数据库连接...</div>
+    </div>
+    
+    <div class="test-container">
+        <h2>测试操作</h2>
+        <button onclick="testFirebaseConnection()">测试Firebase连接</button>
+        <button onclick="testDatabaseRead()">测试数据库读取</button>
+        <button onclick="testDatabaseWrite()">测试数据库写入</button>
+        <button onclick="testGetActiveSessions()">测试获取活跃会话</button>
+        <button onclick="clearLog()">清空日志</button>
+    </div>
+    
+    <div class="test-container">
+        <h2>测试日志</h2>
+        <div id="log"></div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+    
+    <!-- Firebase配置 -->
+    <script src="firebase-config.js"></script>
+    <script src="firebase-comm.js"></script>
+    
+    <script>
+        let comm;
+        
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.textContent += `[${timestamp}] ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+        
+        function updateStatus(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `status ${type}`;
+        }
+        
+        async function testFirebaseConnection() {
+            log('=== 开始Firebase连接测试 ===');
+            
+            try {
+                // 检查Firebase SDK是否加载
+                if (typeof firebase === 'undefined') {
+                    throw new Error('Firebase SDK未加载');
+                }
+                log('✓ Firebase SDK已加载');
+                
+                // 初始化Firebase
+                const initialized = window.FirebaseConfig.initializeFirebase();
+                if (!initialized) {
+                    throw new Error('Firebase初始化失败');
+                }
+                log('✓ Firebase初始化成功');
+                updateStatus('firebase-status', 'Firebase连接正常', 'success');
+                
+                // 测试数据库连接
+                const database = window.FirebaseConfig.getDatabase();
+                if (!database) {
+                    throw new Error('无法获取数据库实例');
+                }
+                log('✓ 数据库实例获取成功');
+                updateStatus('database-status', '数据库连接正常', 'success');
+                
+            } catch (error) {
+                log(`✗ Firebase连接失败: ${error.message}`, 'error');
+                updateStatus('firebase-status', `Firebase连接失败: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testDatabaseRead() {
+            log('=== 开始数据库读取测试 ===');
+            
+            try {
+                const database = window.FirebaseConfig.getDatabase();
+                if (!database) {
+                    throw new Error('数据库未初始化');
+                }
+                
+                // 测试读取根节点
+                const rootRef = database.ref('/');
+                const snapshot = await rootRef.once('value');
+                log(`✓ 数据库读取成功，数据存在: ${snapshot.exists()}`);
+                
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    const keys = Object.keys(data || {});
+                    log(`数据库根节点包含: ${keys.join(', ')}`);
+                }
+                
+            } catch (error) {
+                log(`✗ 数据库读取失败: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testDatabaseWrite() {
+            log('=== 开始数据库写入测试 ===');
+            
+            try {
+                const database = window.FirebaseConfig.getDatabase();
+                if (!database) {
+                    throw new Error('数据库未初始化');
+                }
+                
+                // 写入测试数据
+                const testRef = database.ref('test/connection');
+                const testData = {
+                    timestamp: new Date().toISOString(),
+                    message: 'Firebase连接测试'
+                };
+                
+                await testRef.set(testData);
+                log('✓ 数据库写入成功');
+                
+                // 读取验证
+                const snapshot = await testRef.once('value');
+                if (snapshot.exists()) {
+                    log('✓ 写入数据验证成功');
+                } else {
+                    log('✗ 写入数据验证失败', 'error');
+                }
+                
+            } catch (error) {
+                log(`✗ 数据库写入失败: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testGetActiveSessions() {
+            log('=== 开始获取活跃会话测试 ===');
+            
+            try {
+                if (!comm) {
+                    comm = new FirebaseComm();
+                    const initialized = await comm.initialize();
+                    if (!initialized) {
+                        throw new Error('FirebaseComm初始化失败');
+                    }
+                }
+                
+                const sessions = await comm.getActiveSessions();
+                log(`✓ 获取活跃会话成功，共找到 ${sessions.length} 个会话`);
+                
+                sessions.forEach((session, index) => {
+                    log(`会话 ${index + 1}: ${session.sessionId || session.id} (状态: ${session.status})`);
+                });
+                
+            } catch (error) {
+                log(`✗ 获取活跃会话失败: ${error.message}`, 'error');
+            }
+        }
+        
+        function clearLog() {
+            document.getElementById('log').textContent = '';
+        }
+        
+        // 页面加载时自动测试连接
+        window.addEventListener('load', () => {
+            log('页面加载完成，开始自动测试...');
+            setTimeout(testFirebaseConnection, 1000);
+        });
+    </script>
+</body>
+</html>

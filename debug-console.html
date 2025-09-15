@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>控制台调试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .debug-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .warning { background-color: #fff3cd; color: #856404; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-container">
+        <h1>🔍 控制台调试页面</h1>
+        <p>这个页面用于检查JavaScript错误和Firebase连接状态</p>
+        
+        <div id="console-errors" class="status info">
+            <h3>📋 控制台错误检查</h3>
+            <div id="error-list">正在检查...</div>
+        </div>
+        
+        <div id="firebase-status" class="status info">
+            <h3>🔥 Firebase连接状态</h3>
+            <div id="firebase-info">正在检查...</div>
+        </div>
+        
+        <div id="script-status" class="status info">
+            <h3>📜 脚本加载状态</h3>
+            <div id="script-info">正在检查...</div>
+        </div>
+        
+        <div class="debug-container">
+            <h3>🔧 调试工具</h3>
+            <button onclick="checkWizardController()">检查WizardController</button>
+            <button onclick="checkFirebaseConnection()">测试Firebase连接</button>
+            <button onclick="checkSessionData()">检查会话数据</button>
+            <button onclick="window.location.href='/wizard.html'">返回巫师页面</button>
+        </div>
+        
+        <div id="debug-output" class="debug-container">
+            <h3>📊 调试输出</h3>
+            <pre id="debug-log"></pre>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    
+    <!-- 项目脚本 -->
+    <script src="firebase-config.js"></script>
+    <script src="firebase-comm.js"></script>
+    <script src="indexeddb-storage.js"></script>
+    <script src="hybrid-storage.js"></script>
+    <script src="storage-monitor.js"></script>
+    <script src="large-file-handler.js"></script>
+    <script src="communication.js"></script>
+    <script src="wizard-script.js"></script>
+
+    <script>
+        let debugLog = [];
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${type.toUpperCase()}: ${message}`;
+            debugLog.push(logEntry);
+            updateDebugOutput();
+        }
+        
+        function updateDebugOutput() {
+            document.getElementById('debug-log').textContent = debugLog.join('\n');
+        }
+        
+        // 捕获控制台错误
+        window.addEventListener('error', function(e) {
+            log(`JavaScript错误: ${e.message} (${e.filename}:${e.lineno})`, 'error');
+            updateErrorDisplay();
+        });
+        
+        window.addEventListener('unhandledrejection', function(e) {
+            log(`Promise错误: ${e.reason}`, 'error');
+            updateErrorDisplay();
+        });
+        
+        function updateErrorDisplay() {
+            const errorDiv = document.getElementById('error-list');
+            const errors = debugLog.filter(log => log.includes('ERROR'));
+            if (errors.length === 0) {
+                errorDiv.innerHTML = '<span class="success">✅ 没有发现JavaScript错误</span>';
+            } else {
+                errorDiv.innerHTML = '<span class="error">❌ 发现错误:</span><br>' + 
+                    errors.map(err => `<div class="error">${err}</div>`).join('');
+            }
+        }
+        
+        function checkFirebaseConnection() {
+            log('开始检查Firebase连接...', 'info');
+            
+            try {
+                if (typeof firebase === 'undefined') {
+                    log('Firebase SDK未加载', 'error');
+                    return;
+                }
+                
+                if (typeof firebaseConfig === 'undefined') {
+                    log('Firebase配置未找到', 'error');
+                    return;
+                }
+                
+                log('Firebase SDK和配置已加载', 'info');
+                
+                // 检查Firebase应用初始化
+                const app = firebase.apps.length > 0 ? firebase.apps[0] : null;
+                if (app) {
+                    log('Firebase应用已初始化', 'info');
+                } else {
+                    log('Firebase应用未初始化', 'error');
+                }
+                
+                // 检查通信模块
+                if (typeof FirebaseComm !== 'undefined') {
+                    log('FirebaseComm类已加载', 'info');
+                } else {
+                    log('FirebaseComm类未找到', 'error');
+                }
+                
+            } catch (error) {
+                log(`Firebase检查出错: ${error.message}`, 'error');
+            }
+        }
+        
+        function checkWizardController() {
+            log('开始检查WizardController...', 'info');
+            
+            try {
+                if (typeof WizardController !== 'undefined') {
+                    log('WizardController类已加载', 'info');
+                    
+                    // 检查是否有实例
+                    if (window.wizardController) {
+                        log('WizardController实例存在', 'info');
+                        log(`当前会话ID: ${window.wizardController.currentSessionId || '无'}`, 'info');
+                    } else {
+                        log('WizardController实例不存在', 'warning');
+                    }
+                } else {
+                    log('WizardController类未找到', 'error');
+                }
+                
+                // 检查DOM元素
+                const sessionsList = document.getElementById('sessions-list');
+                if (sessionsList) {
+                    log('sessions-list元素存在', 'info');
+                } else {
+                    log('sessions-list元素不存在', 'error');
+                }
+                
+            } catch (error) {
+                log(`WizardController检查出错: ${error.message}`, 'error');
+            }
+        }
+        
+        function checkSessionData() {
+            log('开始检查会话数据...', 'info');
+            
+            try {
+                if (window.wizardController && window.wizardController.comm) {
+                    const comm = window.wizardController.comm;
+                    log('通信模块存在，尝试获取会话数据...', 'info');
+                    
+                    // 这里可以添加更多的数据检查逻辑
+                } else {
+                    log('通信模块不存在', 'error');
+                }
+            } catch (error) {
+                log(`会话数据检查出错: ${error.message}`, 'error');
+            }
+        }
+        
+        // 页面加载完成后的初始检查
+        document.addEventListener('DOMContentLoaded', function() {
+            log('页面加载完成，开始初始检查...', 'info');
+            
+            setTimeout(() => {
+                updateErrorDisplay();
+                checkFirebaseConnection();
+                checkWizardController();
+                
+                // 更新状态显示
+                const firebaseDiv = document.getElementById('firebase-info');
+                const scriptDiv = document.getElementById('script-info');
+                
+                firebaseDiv.innerHTML = debugLog.filter(log => log.includes('Firebase')).length > 0 ? 
+                    '✅ Firebase检查完成，查看调试输出了解详情' : '❌ Firebase检查失败';
+                    
+                scriptDiv.innerHTML = debugLog.filter(log => log.includes('WizardController')).length > 0 ? 
+                    '✅ 脚本检查完成，查看调试输出了解详情' : '❌ 脚本检查失败';
+                    
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

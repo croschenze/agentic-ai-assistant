@@ -19,16 +19,19 @@ class WizardController {
 
     async init() {
         // 初始化Firebase通信模块
+        console.log('开始初始化Firebase通信模块...');
         this.comm = new FirebaseComm();
         const initialized = await this.comm.initialize();
         
         if (!initialized) {
             console.error('Firebase communication module initialization failed');
-            alert('Unable to connect to server, please check network connection');
-            return;
+            // 不阻止应用启动，允许离线模式
+            console.warn('将以离线模式运行，某些功能可能不可用');
+            this.showNotification('无法连接到服务器，将以离线模式运行', 'warning');
+        } else {
+            console.log('Firebase communication module is ready');
+            this.showNotification('已连接到服务器', 'success');
         }
-        
-        console.log('Firebase communication module is ready');
         
         debugLog('Starting event binding');
         this.bindEvents();
@@ -58,63 +61,96 @@ class WizardController {
 
     bindEvents() {
         // 新建会话
-        document.getElementById('new-session-btn').addEventListener('click', async () => {
-            await this.createNewSession();
-        });
+        const newSessionBtn = document.getElementById('new-session-btn');
+        if (newSessionBtn) {
+            newSessionBtn.addEventListener('click', async () => {
+                await this.createNewSession();
+            });
+        }
 
         // 加入会话
-        document.getElementById('join-session-btn').addEventListener('click', async () => {
-            await this.joinExistingSession();
-        });
+        const joinSessionBtn = document.getElementById('join-session-btn');
+        if (joinSessionBtn) {
+            joinSessionBtn.addEventListener('click', async () => {
+                await this.joinExistingSession();
+            });
+        }
 
         // 加入会话输入框回车键支持
-        document.getElementById('join-session-input').addEventListener('keydown', async (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                await this.joinExistingSession();
-            }
-        });
+        const joinSessionInput = document.getElementById('join-session-input');
+        if (joinSessionInput) {
+            joinSessionInput.addEventListener('keydown', async (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    await this.joinExistingSession();
+                }
+            });
+        }
 
         // 发送回复
-        document.getElementById('send-reply-btn').addEventListener('click', async () => {
-            await this.sendReply();
-        });
+        const sendReplyBtn = document.getElementById('send-reply-btn');
+        if (sendReplyBtn) {
+            sendReplyBtn.addEventListener('click', async () => {
+                await this.sendReply();
+            });
+        }
 
         // 清空所有会话
-        document.getElementById('clear-all-btn').addEventListener('click', () => {
-            this.clearAllSessions();
-        });
+        const clearAllBtn = document.getElementById('clear-all-btn');
+        if (clearAllBtn) {
+            clearAllBtn.addEventListener('click', () => {
+                this.clearAllSessions();
+            });
+        }
 
         // 复制被测者链接
-        document.getElementById('copy-session-url').addEventListener('click', () => {
-            this.copySessionUrl();
-        });
+        const copySessionUrlBtn = document.getElementById('copy-session-url');
+        if (copySessionUrlBtn) {
+            copySessionUrlBtn.addEventListener('click', () => {
+                this.copySessionUrl();
+            });
+        }
 
         // 结束会话
-        document.getElementById('end-session-btn').addEventListener('click', () => {
-            this.endCurrentSession();
-        });
+        const endSessionBtn = document.getElementById('end-session-btn');
+        if (endSessionBtn) {
+            endSessionBtn.addEventListener('click', () => {
+                this.endCurrentSession();
+            });
+        }
 
         // 快速回复
-        document.getElementById('quick-replies-btn').addEventListener('click', () => {
-            this.showQuickReplies();
-        });
+        const quickRepliesBtn = document.getElementById('quick-replies-btn');
+        if (quickRepliesBtn) {
+            quickRepliesBtn.addEventListener('click', () => {
+                this.showQuickReplies();
+            });
+        }
 
         // Gemini助手
-        document.getElementById('gemini-assist-btn').addEventListener('click', () => {
-            this.openGeminiAssist();
-        });
+        const geminiAssistBtn = document.getElementById('gemini-assist-btn');
+        if (geminiAssistBtn) {
+            geminiAssistBtn.addEventListener('click', () => {
+                this.openGeminiAssist();
+            });
+        }
 
         // 简化的文件上传按钮
-        document.getElementById('wizard-file-btn').addEventListener('click', () => {
-            debugLog('文件上传按钮被点击');
-            this.toggleSimpleFileUpload();
-        });
+        const wizardFileBtn = document.getElementById('wizard-file-btn');
+        if (wizardFileBtn) {
+            wizardFileBtn.addEventListener('click', () => {
+                debugLog('文件上传按钮被点击');
+                this.toggleSimpleFileUpload();
+            });
+        }
 
         // 关闭模态框
-        document.getElementById('close-modal').addEventListener('click', () => {
-            this.hideQuickReplies();
-        });
+        const closeModalBtn = document.getElementById('close-modal');
+        if (closeModalBtn) {
+            closeModalBtn.addEventListener('click', () => {
+                this.hideQuickReplies();
+            });
+        }
 
         // 输入框字符计数
         const wizardInput = document.getElementById('wizard-input');
@@ -188,6 +224,17 @@ class WizardController {
         
         // Avatar selector events
         this.setupAvatarSelector();
+        
+        // 头像选择器折叠功能
+        const avatarToggleHeader = document.getElementById('avatar-toggle-header');
+        if (avatarToggleHeader) {
+            avatarToggleHeader.addEventListener('click', () => {
+                const section = avatarToggleHeader.closest('.avatar-selector-section');
+                if (section) {
+                    section.classList.toggle('is-open');
+                }
+            });
+        }
     }
     
     setupAvatarSelector() {
@@ -347,6 +394,28 @@ class WizardController {
             const success = await this.comm.joinSession(sessionId);
             console.log('加入会话结果:', success);
             if (success) {
+                // 加载该会话的历史消息
+                console.log('加载会话历史消息');
+                try {
+                    const sessionData = await this.comm.getSessionData(sessionId);
+                    if (sessionData) {
+                        // 合并并排序消息
+                        const allMessages = [];
+                        if (sessionData.participantMessages) {
+                            allMessages.push(...sessionData.participantMessages.map(msg => ({...msg, sender: 'participant'})));
+                        }
+                        if (sessionData.aiResponses) {
+                            allMessages.push(...sessionData.aiResponses.map(msg => ({...msg, sender: 'wizard'})));
+                        }
+                        // 按时间戳排序
+                        allMessages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+                        this.messageHistory.set(sessionId, allMessages);
+                        console.log(`加载了 ${allMessages.length} 条历史消息`);
+                    }
+                } catch (error) {
+                    console.error('加载历史消息失败:', error);
+                }
+                
                 // 设置实时监听
                 console.log('设置通信监听');
                 this.setupCommunication();
@@ -359,48 +428,64 @@ class WizardController {
         
         await this.renderSessions(); // 初始加载时不使用防抖
         this.renderSessionDetail();
+        this.renderMessages(); // 渲染历史消息
         this.saveData();
     }
 
-     async renderSessions() {
-        const sessionsList = document.getElementById('sessions-list');
-        sessionsList.innerHTML = '';
+    // 创建单个会话项元素的辅助函数
+    createSessionElement(sessionData) {
+        const sessionItem = document.createElement('div');
+        sessionItem.className = 'session-item';
+        sessionItem.setAttribute('data-session-id', sessionData.sessionId);
         
-        // 确保通信模块存储系统准备就绪
-        if (this.comm && !this.comm.storageReady) {
-            console.log('等待通信模块存储系统准备就绪...');
-            while (!this.comm.storageReady) {
-                await new Promise(resolve => setTimeout(resolve, 100));
-            }
+        // 如果是当前选中的会话，添加active类
+        if (sessionData.sessionId === this.currentSessionId) {
+            sessionItem.classList.add('active');
         }
         
-        // 使用通信模块获取活跃会话
-        const sessions = this.comm ? await this.comm.getActiveSessions() : [];
-        console.log('renderSessions获取到的会话数据:', sessions);
+        // 获取最后一条消息
+        const lastMessage = sessionData.participantMessages && sessionData.participantMessages.length > 0 
+            ? sessionData.participantMessages[sessionData.participantMessages.length - 1].content 
+            : '暂无消息';
         
-        if (sessions.length === 0 && this.sessions.size === 0) {
-            sessionsList.innerHTML = '<div class="empty-sessions">暂无会话</div>';
-            return;
-        }
+        // 计算消息数量
+        const messageCount = (sessionData.participantMessages || []).length;
+        const responseCount = (sessionData.aiResponses || []).length;
+        const totalMessages = messageCount + responseCount;
         
-        // 渲染通信模块中的会话
-        sessions.forEach(session => {
-            const sessionItem = document.createElement('div');
-            sessionItem.className = `session-item ${session.sessionId === this.currentSessionId ? 'active' : ''}`;
-            sessionItem.onclick = () => this.selectSession(session.sessionId);
-            
-            const lastMessage = session.participantMessages && session.participantMessages.length > 0 
-                ? session.participantMessages[session.participantMessages.length - 1].content 
-                : '暂无消息';
-            
-            const messageCount = (session.participantMessages || []).length;
-            const responseCount = (session.aiResponses || []).length;
-            
-            sessionItem.innerHTML = `
+        // 格式化会话ID显示（显示前8位）
+        const displayId = sessionData.sessionId.length > 12 
+            ? sessionData.sessionId.substring(0, 12) + '...' 
+            : sessionData.sessionId;
+        
+        // 格式化创建时间
+        const createdTime = new Date(sessionData.createdAt || Date.now()).toLocaleTimeString('zh-CN', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        // 构建HTML内容
+        sessionItem.innerHTML = `
+            <div class="session-controls">
+                <input type="checkbox" class="session-checkbox" data-session-id="${sessionData.sessionId}" />
+                <button class="delete-session-btn" data-session-id="${sessionData.sessionId}" title="删除会话">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3,6 5,6 21,6"></polyline>
+                        <path d="m19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"></path>
+                        <line x1="10" y1="11" x2="10" y2="17"></line>
+                        <line x1="14" y1="11" x2="14" y2="17"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="session-content">
                 <div class="session-header">
-                    <span class="session-id">${session.sessionId.substring(0, 12)}...</span>
-                    <span class="session-time">${new Date(session.createdAt).toLocaleTimeString()}</span>
-                    <span class="unread-indicator" style="display: none;">●</span>
+                    <span class="session-id">${displayId}</span>
+                    <span class="session-time">${createdTime}</span>
+                </div>
+                <div class="session-status">
+                    <span class="status-dot ${sessionData.status === 'active' ? 'active' : 'waiting'}"></span>
+                    <span class="status-text">${sessionData.status === 'active' ? '活跃' : '等待中'}</span>
+                    ${totalMessages > 0 ? `<span class="message-count">${totalMessages}</span>` : ''}
                 </div>
                 <div class="session-preview">
                     ${lastMessage.length > 50 ? lastMessage.substring(0, 50) + '...' : lastMessage}
@@ -409,58 +494,166 @@ class WizardController {
                     <span>消息: ${messageCount}</span>
                     <span>回复: ${responseCount}</span>
                 </div>
+            </div>
+        `;
+        
+        // 添加点击事件监听器到session-content区域
+        const sessionContent = sessionItem.querySelector('.session-content');
+        sessionContent.addEventListener('click', () => {
+            this.selectSession(sessionData.sessionId);
+        });
+        
+        // 添加删除按钮事件监听器
+        const deleteBtn = sessionItem.querySelector('.delete-session-btn');
+        deleteBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // 防止触发会话选择
+            this.deleteSession(sessionData.sessionId);
+        });
+        
+        // 添加复选框事件监听器
+        const checkbox = sessionItem.querySelector('.session-checkbox');
+        checkbox.addEventListener('change', (e) => {
+            e.stopPropagation(); // 防止触发会话选择
+            this.updateBatchDeleteUI();
+        });
+        
+        return sessionItem;
+    }
+
+    async renderSessions() {
+        console.log('=== 开始渲染会话列表 ===');
+        const sessionsList = document.getElementById('sessions-list');
+        
+        if (!sessionsList) {
+            console.error('未找到sessions-list元素');
+            return;
+        }
+        
+        // 1. 首先清空容器内容
+        sessionsList.innerHTML = '';
+        console.log('已清空会话列表容器');
+        
+        // 确保通信模块存储系统准备就绪
+        if (this.comm && !this.comm.storageReady) {
+            console.log('等待通信模块存储系统准备就绪...');
+            let waitCount = 0;
+            while (!this.comm.storageReady && waitCount < 50) { // 最多等待5秒
+                await new Promise(resolve => setTimeout(resolve, 100));
+                waitCount++;
+            }
+            if (!this.comm.storageReady) {
+                console.warn('通信模块存储系统未就绪，跳过Firebase会话加载');
+            }
+        }
+        
+        // 2. 获取所有会话数据
+        let sessions = [];
+        if (this.comm && this.comm.storageReady) {
+            try {
+                sessions = await this.comm.getActiveSessions();
+                console.log('从Firebase获取到的会话数据:', sessions);
+            } catch (error) {
+                console.error('获取Firebase会话失败:', error);
+                sessions = [];
+            }
+        } else {
+            console.log('通信模块不可用，跳过Firebase会话加载');
+        }
+        
+        // 3. 检查本地会话
+        console.log('本地会话数量:', this.sessions.size);
+        console.log('Firebase会话数量:', sessions.length);
+        
+        // 如果没有会话，显示空状态和创建提示
+        if (sessions.length === 0 && this.sessions.size === 0) {
+            console.log('没有找到任何会话，显示空状态');
+            sessionsList.innerHTML = `
+                <div class="empty-sessions">
+                    <p>暂无会话</p>
+                    <p style="font-size: 14px; color: #666; margin-top: 10px;">
+                        点击 "+ New Session" 创建新会话<br>
+                        或输入会话ID加入现有会话
+                    </p>
+                </div>
             `;
-            
-            sessionsList.appendChild(sessionItem);
+            // 更新会话计数
+            const sessionCountElement = document.getElementById('session-count');
+            if (sessionCountElement) {
+                sessionCountElement.textContent = '0';
+            }
+            return;
+        }
+        
+        // 添加批量删除控制界面
+        const batchControlsHtml = `
+            <div class="batch-controls" id="batch-controls">
+                <div class="batch-select">
+                    <input type="checkbox" id="select-all-sessions" class="select-all-checkbox" />
+                    <label for="select-all-sessions">全选</label>
+                </div>
+                <button id="batch-delete-btn" class="batch-delete-btn" disabled>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3,6 5,6 21,6"></polyline>
+                        <path d="m19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"></path>
+                        <line x1="10" y1="11" x2="10" y2="17"></line>
+                        <line x1="14" y1="11" x2="14" y2="17"></line>
+                    </svg>
+                    批量删除
+                </button>
+            </div>
+        `;
+        
+        sessionsList.innerHTML = batchControlsHtml;
+        
+        // 绑定批量控制事件
+        this.bindBatchControlEvents();
+        
+        // 3. 遍历通信模块中的会话并创建元素
+        sessions.forEach(session => {
+            const sessionElement = this.createSessionElement(session);
+            sessionsList.appendChild(sessionElement);
             
             // 异步检查是否有未读消息
             if (this.comm) {
                 this.comm.hasUnreadMessages(session.sessionId).then(hasUnread => {
-                    const unreadIndicator = sessionItem.querySelector('.unread-indicator');
-                    if (hasUnread && unreadIndicator) {
-                        sessionItem.classList.add('unread');
-                        unreadIndicator.style.display = 'inline';
+                    if (hasUnread) {
+                        sessionElement.classList.add('unread');
+                        const messageCountElement = sessionElement.querySelector('.message-count');
+                        if (messageCountElement) {
+                            messageCountElement.style.background = '#ff5722';
+                        }
                     }
                 }).catch(err => console.error('检查未读消息失败:', err));
             }
         });
 
-        // 渲染本地会话（向后兼容）
+        // 4. 渲染本地会话（向后兼容）
         let localSessionsCount = 0;
         this.sessions.forEach((session, sessionId) => {
             // 跳过已经在通信模块中的会话
             if (sessions.some(s => s.sessionId === sessionId)) return;
             
             localSessionsCount++;
-            const sessionItem = document.createElement('div');
-            sessionItem.className = `session-item ${sessionId === this.currentSessionId ? 'active' : ''}`;
-            sessionItem.onclick = () => this.selectSession(sessionId);
-
-            const lastMessage = session.participantMessages && session.participantMessages.length > 0 
-                ? session.participantMessages[session.participantMessages.length - 1].content 
-                : '暂无消息';
-            
-            const messageCount = (session.participantMessages || []).length;
-            const responseCount = (session.aiResponses || []).length;
-
-            sessionItem.innerHTML = `
-                <div class="session-header">
-                    <span class="session-id">${sessionId.substring(0, 12)}...</span>
-                    <span class="session-time">${new Date(session.createdAt || Date.now()).toLocaleTimeString()}</span>
-                </div>
-                <div class="session-preview">
-                    ${lastMessage.length > 50 ? lastMessage.substring(0, 50) + '...' : lastMessage}
-                </div>
-                <div class="session-stats">
-                    <span>消息: ${messageCount}</span>
-                    <span>回复: ${responseCount}</span>
-                </div>
-            `;
-
-            sessionsList.appendChild(sessionItem);
+            const sessionElement = this.createSessionElement(session);
+            sessionsList.appendChild(sessionElement);
         });
 
-        // 更新会话计数
+        // 5. 确保当前选中的会话拥有active类
+        if (this.currentSessionId) {
+            const activeElement = sessionsList.querySelector(`[data-session-id="${this.currentSessionId}"]`);
+            if (activeElement) {
+                // 移除所有其他会话的active类
+                sessionsList.querySelectorAll('.session-item.active').forEach(item => {
+                    if (item !== activeElement) {
+                        item.classList.remove('active');
+                    }
+                });
+                // 确保当前会话有active类
+                activeElement.classList.add('active');
+            }
+        }
+
+        // 6. 更新会话计数
         const totalSessions = sessions.length + localSessionsCount;
         console.log('更新会话计数 - 通信模块会话:', sessions.length, '本地会话:', localSessionsCount, '总计:', totalSessions);
         document.getElementById('session-count').textContent = `活跃会话: ${totalSessions}`;
@@ -713,6 +906,8 @@ class WizardController {
         
         // 先检查当前已有的会话并初始化processedSessions
         this.processedSessions = new Set();
+        this.initialLoadComplete = false;
+        
         sessionsRef.once('value', (snapshot) => {
             const existingSessions = snapshot.val() || {};
             const sessionIds = Object.keys(existingSessions);
@@ -723,6 +918,9 @@ class WizardController {
                 this.processedSessions.add(sessionId);
             });
             console.log('🔄 已初始化processedSessions，包含', this.processedSessions.size, '个现有会话');
+            
+            // 标记初始加载完成
+            this.initialLoadComplete = true;
         });
         
         // 监听新会话的创建
@@ -745,8 +943,10 @@ class WizardController {
                 // 重新渲染会话列表以显示新会话
                 this.debouncedRenderSessions();
                 
-                // 显示通知
-                this.showNotification(`新会话已创建: ${sessionId}`, 'success');
+                // 只有在初始加载完成后才显示新会话通知（避免页面加载时显示现有会话的通知）
+                if (this.initialLoadComplete) {
+                    this.showNotification(`新会话已创建: ${sessionId}`, 'success');
+                }
             } else {
                 console.log('⚠️ 会话已处理过，跳过:', sessionId);
             }
@@ -1957,6 +2157,149 @@ class WizardController {
         }
     }
 
+    // 删除单个会话
+    async deleteSession(sessionId) {
+        if (!sessionId) return;
+        
+        // 显示确认对话框
+        const confirmed = await this.showDeleteConfirmDialog([sessionId]);
+        if (!confirmed) return;
+        
+        try {
+            // 从Firebase删除
+            if (this.comm && this.comm.storageReady) {
+                await this.comm.deleteSession(sessionId);
+            }
+            
+            // 从本地删除
+            this.sessions.delete(sessionId);
+            this.messageHistory.delete(sessionId);
+            
+            // 如果删除的是当前会话，清空当前会话
+            if (this.currentSessionId === sessionId) {
+                this.currentSessionId = null;
+                this.renderSessionDetail();
+            }
+            
+            // 保存到本地存储并重新渲染
+            this.saveToStorage();
+            this.debouncedRenderSessions();
+            
+            this.showNotification('会话已删除', 'success');
+        } catch (error) {
+            console.error('删除会话失败:', error);
+            this.showNotification('删除会话失败: ' + error.message, 'error');
+        }
+    }
+    
+    // 批量删除会话
+    async batchDeleteSessions() {
+        const selectedCheckboxes = document.querySelectorAll('.session-checkbox:checked');
+        const sessionIds = Array.from(selectedCheckboxes).map(cb => cb.dataset.sessionId);
+        
+        if (sessionIds.length === 0) {
+            this.showNotification('请选择要删除的会话', 'warning');
+            return;
+        }
+        
+        // 显示确认对话框
+        const confirmed = await this.showDeleteConfirmDialog(sessionIds);
+        if (!confirmed) return;
+        
+        try {
+            // 批量删除
+            for (const sessionId of sessionIds) {
+                // 从Firebase删除
+                if (this.comm && this.comm.storageReady) {
+                    await this.comm.deleteSession(sessionId);
+                }
+                
+                // 从本地删除
+                this.sessions.delete(sessionId);
+                this.messageHistory.delete(sessionId);
+                
+                // 如果删除的是当前会话，清空当前会话
+                if (this.currentSessionId === sessionId) {
+                    this.currentSessionId = null;
+                }
+            }
+            
+            // 如果当前会话被删除，重新渲染会话详情
+            if (!this.currentSessionId) {
+                this.renderSessionDetail();
+            }
+            
+            // 保存到本地存储并重新渲染
+            this.saveToStorage();
+            this.debouncedRenderSessions();
+            
+            this.showNotification(`已删除 ${sessionIds.length} 个会话`, 'success');
+        } catch (error) {
+            console.error('批量删除会话失败:', error);
+            this.showNotification('批量删除失败: ' + error.message, 'error');
+        }
+    }
+    
+    // 显示删除确认对话框
+    async showDeleteConfirmDialog(sessionIds) {
+        const count = sessionIds.length;
+        const message = count === 1 
+            ? `确定要删除这个会话吗？\n\n会话ID: ${sessionIds[0].substring(0, 12)}...\n\n此操作不可撤销。`
+            : `确定要删除这 ${count} 个会话吗？\n\n此操作不可撤销。`;
+        
+        return confirm(message);
+    }
+    
+    // 绑定批量控制事件
+    bindBatchControlEvents() {
+        const selectAllCheckbox = document.getElementById('select-all-sessions');
+        const batchDeleteBtn = document.getElementById('batch-delete-btn');
+        
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', (e) => {
+                const sessionCheckboxes = document.querySelectorAll('.session-checkbox');
+                sessionCheckboxes.forEach(checkbox => {
+                    checkbox.checked = e.target.checked;
+                });
+                this.updateBatchDeleteUI();
+            });
+        }
+        
+        if (batchDeleteBtn) {
+            batchDeleteBtn.addEventListener('click', () => {
+                this.batchDeleteSessions();
+            });
+        }
+    }
+    
+    // 更新批量删除UI状态
+    updateBatchDeleteUI() {
+        const selectedCheckboxes = document.querySelectorAll('.session-checkbox:checked');
+        const batchDeleteBtn = document.getElementById('batch-delete-btn');
+        const selectAllCheckbox = document.getElementById('select-all-sessions');
+        const allCheckboxes = document.querySelectorAll('.session-checkbox');
+        
+        if (batchDeleteBtn) {
+            batchDeleteBtn.disabled = selectedCheckboxes.length === 0;
+            batchDeleteBtn.textContent = selectedCheckboxes.length > 0 
+                ? `批量删除 (${selectedCheckboxes.length})` 
+                : '批量删除';
+        }
+        
+        if (selectAllCheckbox && allCheckboxes.length > 0) {
+            if (selectedCheckboxes.length === allCheckboxes.length) {
+                selectAllCheckbox.checked = true;
+                selectAllCheckbox.indeterminate = false;
+            } else if (selectedCheckboxes.length > 0) {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = true;
+            } else {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = false;
+            }
+        }
+    }
+
     showNotification(message, type = 'info') {
         // 创建通知元素
         const notification = document.createElement('div');
@@ -2025,15 +2368,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     debugLog('WizardController实例已创建');
     await window.wizardController.init();
     debugLog('WizardController初始化完成');
-    
-    // Hide loading overlay
-    const loadingOverlay = document.getElementById('loading-overlay');
-    if (loadingOverlay) {
-        loadingOverlay.classList.add('hidden');
-        setTimeout(() => {
-            loadingOverlay.style.display = 'none';
-        }, 300);
-    }
     
     // 验证关键元素是否存在
      const fileInput = document.getElementById('wizard-file-input');

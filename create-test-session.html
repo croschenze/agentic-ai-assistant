@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>创建测试会话</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #0056b3; }
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 5px 0;
+        }
+        #log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 创建测试会话</h1>
+    
+    <div class="container">
+        <h2>会话创建</h2>
+        <div id="status" class="status info">准备创建测试会话...</div>
+        <input type="text" id="sessionId" placeholder="会话ID (留空自动生成)" />
+        <button onclick="createTestSession()">创建测试会话</button>
+        <button onclick="addTestMessage()">添加测试消息</button>
+        <button onclick="checkSessions()">检查现有会话</button>
+    </div>
+    
+    <div class="container">
+        <h2>操作日志</h2>
+        <div id="log"></div>
+        <button onclick="clearLog()">清空日志</button>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+    
+    <!-- Firebase配置 -->
+    <script src="firebase-config.js"></script>
+    <script src="firebase-comm.js"></script>
+    
+    <script>
+        let comm;
+        let testSessionId = null;
+        
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.textContent += `[${timestamp}] ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+        
+        function updateStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+        }
+        
+        function generateSessionId() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let result = 'WOZ-';
+            for (let i = 0; i < 8; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+        
+        async function initializeComm() {
+            if (!comm) {
+                comm = new FirebaseComm();
+                const initialized = await comm.initialize();
+                if (!initialized) {
+                    throw new Error('Firebase通信模块初始化失败');
+                }
+                log('Firebase通信模块初始化成功');
+            }
+            return comm;
+        }
+        
+        async function createTestSession() {
+            try {
+                updateStatus('正在创建测试会话...', 'info');
+                
+                await initializeComm();
+                
+                const sessionIdInput = document.getElementById('sessionId');
+                testSessionId = sessionIdInput.value.trim() || generateSessionId();
+                
+                log(`开始创建测试会话: ${testSessionId}`);
+                
+                const sessionData = {
+                    createdAt: new Date().toISOString(),
+                    status: 'active',
+                    participantConnected: false,
+                    lastActivity: new Date().toISOString(),
+                    experimentType: 'test',
+                    description: '测试会话 - 用于验证会话列表功能'
+                };
+                
+                const success = await comm.createSession(testSessionId, sessionData);
+                
+                if (success) {
+                    log(`✓ 测试会话创建成功: ${testSessionId}`);
+                    updateStatus(`测试会话已创建: ${testSessionId}`, 'success');
+                    sessionIdInput.value = testSessionId;
+                } else {
+                    throw new Error('会话创建失败');
+                }
+                
+            } catch (error) {
+                log(`✗ 创建测试会话失败: ${error.message}`);
+                updateStatus(`创建失败: ${error.message}`, 'error');
+            }
+        }
+        
+        async function addTestMessage() {
+            try {
+                if (!testSessionId) {
+                    throw new Error('请先创建测试会话');
+                }
+                
+                await initializeComm();
+                
+                const messageData = {
+                    content: `测试消息 - ${new Date().toLocaleTimeString()}`,
+                    sender: 'participant',
+                    timestamp: new Date().toISOString(),
+                    messageId: `msg_${Date.now()}`
+                };
+                
+                log(`添加测试消息到会话: ${testSessionId}`);
+                await comm.sendMessage(messageData);
+                log('✓ 测试消息添加成功');
+                updateStatus('测试消息已添加', 'success');
+                
+            } catch (error) {
+                log(`✗ 添加测试消息失败: ${error.message}`);
+                updateStatus(`添加消息失败: ${error.message}`, 'error');
+            }
+        }
+        
+        async function checkSessions() {
+            try {
+                updateStatus('正在检查现有会话...', 'info');
+                
+                await initializeComm();
+                
+                const sessions = await comm.getActiveSessions();
+                log(`找到 ${sessions.length} 个活跃会话:`);
+                
+                sessions.forEach((session, index) => {
+                    log(`会话 ${index + 1}: ${session.sessionId}`);
+                    log(`  - 创建时间: ${session.createdAt}`);
+                    log(`  - 状态: ${session.status}`);
+                    log(`  - 参与者消息: ${session.participantMessages?.length || 0}`);
+                    log(`  - AI回复: ${session.aiResponses?.length || 0}`);
+                });
+                
+                updateStatus(`找到 ${sessions.length} 个活跃会话`, 'success');
+                
+            } catch (error) {
+                log(`✗ 检查会话失败: ${error.message}`);
+                updateStatus(`检查失败: ${error.message}`, 'error');
+            }
+        }
+        
+        function clearLog() {
+            document.getElementById('log').textContent = '';
+        }
+        
+        // 页面加载时初始化
+        window.addEventListener('load', () => {
+            log('测试页面加载完成');
+        });
+    </script>
+</body>
+</html>

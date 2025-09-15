@@ -1870,15 +1870,6 @@ class ParticipantInterface {
 document.addEventListener('DOMContentLoaded', () => {
     window.participantInterface = new ParticipantInterface();
     initializeControlPanel();
-    
-    // Hide loading overlay
-    const loadingOverlay = document.getElementById('loading-overlay');
-    if (loadingOverlay) {
-        loadingOverlay.classList.add('hidden');
-        setTimeout(() => {
-            loadingOverlay.style.display = 'none';
-        }, 300);
-    }
 });
 
 // 初始化控制面板
