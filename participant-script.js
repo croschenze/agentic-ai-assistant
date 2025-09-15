@@ -259,7 +259,7 @@ class ParticipantInterface {
                             console.log('收到文件通知消息:', message);
                             this.addFileNotificationMessage(message);
                         } else {
-                            this.addMessage('ai', message.content);
+                            this.addMessage('ai', message.content, message.avatarName, message.avatarIcon);
                         }
                         this.hideWaitingIndicator();
                     } else if (message.sender === 'participant') {
@@ -371,7 +371,7 @@ class ParticipantInterface {
         this.chatMessages.appendChild(messageElement);
         this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
     }
-    addMessage(sender, text) {
+    addMessage(sender, text, avatarName = null, avatarIcon = null) {
         if (!text || text.trim() === '') {
             return;
         }
@@ -379,33 +379,79 @@ class ParticipantInterface {
         const messageElement = document.createElement('div');
         messageElement.classList.add('message', sender);
 
-        const avatar = document.createElement('div');
-        avatar.classList.add('message-avatar');
-        if (sender === 'user') {
-            avatar.textContent = this.t('participant').charAt(0);
+        // Create main container with flexbox layout
+        if (sender === 'ai' || sender === 'wizard') {
+            messageElement.style.display = 'flex';
+            messageElement.style.alignItems = 'flex-start';
+            messageElement.style.gap = '12px';
+            
+            // Avatar image
+            const avatarImg = document.createElement('img');
+            avatarImg.classList.add('message-avatar-img');
+            avatarImg.src = avatarIcon || 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'40\' height=\'40\' viewBox=\'0 0 40 40\'%3E%3Ccircle cx=\'20\' cy=\'20\' r=\'18\' fill=\'%23a855f7\'/%3E%3Ctext x=\'20\' y=\'26\' text-anchor=\'middle\' fill=\'white\' font-size=\'16\' font-weight=\'bold\'%3EAI%3C/text%3E%3C/svg%3E';
+            avatarImg.style.width = '32px';
+            avatarImg.style.height = '32px';
+            avatarImg.style.borderRadius = '50%';
+            avatarImg.style.objectFit = 'cover';
+            
+            // Content container
+            const contentContainer = document.createElement('div');
+            contentContainer.style.flex = '1';
+            
+            // Sender name
+            const senderName = document.createElement('p');
+            senderName.classList.add('message-sender-name');
+            senderName.textContent = avatarName || 'AI Assistant';
+            senderName.style.margin = '0 0 4px 0';
+            senderName.style.fontSize = '12px';
+            senderName.style.color = '#6b7280';
+            senderName.style.fontWeight = '500';
+            
+            // Message bubble
+            const bubble = document.createElement('div');
+            bubble.classList.add('message-bubble');
+            bubble.textContent = text;
+            
+            const time = document.createElement('div');
+            time.classList.add('message-time');
+            time.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            contentContainer.appendChild(senderName);
+            contentContainer.appendChild(bubble);
+            contentContainer.appendChild(time);
+            
+            messageElement.appendChild(avatarImg);
+            messageElement.appendChild(contentContainer);
         } else {
-            avatar.textContent = 'AI';
+            // Original layout for user messages
+            const avatar = document.createElement('div');
+            avatar.classList.add('message-avatar');
+            if (sender === 'user') {
+                avatar.textContent = this.t('participant').charAt(0);
+            } else {
+                avatar.textContent = 'AI';
+            }
+
+            const contentWrapper = document.createElement('div');
+            contentWrapper.classList.add('message-content');
+
+            const bubble = document.createElement('div');
+            bubble.classList.add('message-bubble');
+            bubble.textContent = text;
+
+            const time = document.createElement('div');
+            time.classList.add('message-time');
+            time.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            contentWrapper.appendChild(bubble);
+            contentWrapper.appendChild(time);
+
+            if (sender !== 'system') {
+                messageElement.appendChild(avatar);
+            }
+            
+            messageElement.appendChild(contentWrapper);
         }
-
-        const contentWrapper = document.createElement('div');
-        contentWrapper.classList.add('message-content');
-
-        const bubble = document.createElement('div');
-        bubble.classList.add('message-bubble');
-        bubble.textContent = text;
-
-        const time = document.createElement('div');
-        time.classList.add('message-time');
-        time.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-        contentWrapper.appendChild(bubble);
-        contentWrapper.appendChild(time);
-
-        if (sender !== 'system') {
-            messageElement.appendChild(avatar);
-        }
-        
-        messageElement.appendChild(contentWrapper);
 
         this.chatMessages.appendChild(messageElement);
         this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
@@ -1824,6 +1870,15 @@ class ParticipantInterface {
 document.addEventListener('DOMContentLoaded', () => {
     window.participantInterface = new ParticipantInterface();
     initializeControlPanel();
+    
+    // Hide loading overlay
+    const loadingOverlay = document.getElementById('loading-overlay');
+    if (loadingOverlay) {
+        loadingOverlay.classList.add('hidden');
+        setTimeout(() => {
+            loadingOverlay.style.display = 'none';
+        }, 300);
+    }
 });
 
 // 初始化控制面板

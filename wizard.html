@@ -7,14 +7,20 @@
     <link rel="stylesheet" href="wizard-styles.css">
     
     <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js" defer></script>
     
     <!-- Firebase Configuration -->
-    <script src="firebase-config.js"></script>
-    <script src="firebase-comm.js"></script>
+    <script src="firebase-config.js" defer></script>
+    <script src="firebase-comm.js" defer></script>
 </head>
 <body>
+    <!-- Loading Indicator -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Loading Wizard Interface...</div>
+    </div>
+    
     <div class="wizard-container">
         <div class="wizard-header">
             <h1>🧙‍♂️ Wizard-of-Oz Experiment Control Panel</h1>
@@ -77,6 +83,37 @@
                                 <button id="wizard-file-btn" class="tool-btn">📎 Upload File</button>
                                 <button id="gemini-assist-btn" class="tool-btn">🤖 Gemini Assistant</button>
                                 <button id="quick-replies-btn" class="tool-btn">⚡ Quick Replies</button>
+                            </div>
+                        </div>
+                        
+                        <!-- AI头像选择器 -->
+                        <div class="avatar-selector-section">
+                            <h4>🎭 Select AI Avatar</h4>
+                            <div id="avatar-selector" class="avatar-selector">
+                                <button class="avatar-btn selected" data-name="AI Assistant" data-icon="avatars/default-avatar.svg">
+                                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='18' fill='%23a855f7'/%3E%3Ctext x='20' y='26' text-anchor='middle' fill='white' font-size='16' font-weight='bold'%3EAI%3C/text%3E%3C/svg%3E" alt="Default">
+                                    <span>Default</span>
+                                </button>
+                                <button class="avatar-btn" data-name="Memory Keeper" data-icon="avatars/1-memory-keeper.png">
+                                    <img src="avatars/1-memory-keeper.png" alt="Memory">
+                                    <span>Memory</span>
+                                </button>
+                                <button class="avatar-btn" data-name="Client Expert" data-icon="avatars/3-client-expert.png">
+                                    <img src="avatars/3-client-expert.png" alt="Client">
+                                    <span>Client</span>
+                                </button>
+                                <button class="avatar-btn" data-name="Research Expert" data-icon="avatars/4-research-expert.png">
+                                    <img src="avatars/4-research-expert.png" alt="Research">
+                                    <span>Research</span>
+                                </button>
+                                <button class="avatar-btn" data-name="Creative Expert" data-icon="avatars/5-creative-expert.png">
+                                    <img src="avatars/5-creative-expert.png" alt="Creative">
+                                    <span>Creative</span>
+                                </button>
+                                <button class="avatar-btn" data-name="Evaluation Expert" data-icon="avatars/6-evaluation-expert.png">
+                                    <img src="avatars/6-evaluation-expert.png" alt="Evaluation">
+                                    <span>Evaluation</span>
+                                </button>
                             </div>
                         </div>
                         
@@ -157,11 +194,11 @@
         <div id="debug-content"></div>
     </div>
 
-    <script src="indexeddb-storage.js"></script>
-    <script src="hybrid-storage.js"></script>
-    <script src="storage-monitor.js"></script>
-    <script src="large-file-handler.js"></script>
-    <script src="communication.js"></script>
-    <script src="wizard-script.js"></script>
+    <script src="indexeddb-storage.js" defer></script>
+    <script src="hybrid-storage.js" defer></script>
+    <script src="storage-monitor.js" defer></script>
+    <script src="large-file-handler.js" defer></script>
+    <script src="communication.js" defer></script>
+    <script src="wizard-script.js" defer></script>
 </body>
 </html>

@@ -11,6 +11,10 @@ class WizardController {
         this.sessionUpdateDebounceTimers = new Map(); // 会话更新防抖定时器
         this.renderDebounceTimer = null; // 渲染防抖定时器
         this.fileUploadEventsSetup = false; // 防止重复绑定文件上传事件
+        
+        // Avatar selection variables
+        this.currentAvatarName = 'AI Assistant';
+        this.currentAvatarIcon = 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'40\' height=\'40\' viewBox=\'0 0 40 40\'%3E%3Ccircle cx=\'20\' cy=\'20\' r=\'18\' fill=\'%23a855f7\'/%3E%3Ctext x=\'20\' y=\'26\' text-anchor=\'middle\' fill=\'white\' font-size=\'16\' font-weight=\'bold\'%3EAI%3C/text%3E%3C/svg%3E';
     }
 
     async init() {
@@ -44,11 +48,11 @@ class WizardController {
         
         debugLog('Preparing file upload functionality');
         try {
-            this.setupWizardFileUpload();
+            this.setupSimpleFileUpload();
             debugLog('File upload functionality setup completed');
         } catch (error) {
             debugLog('File upload functionality setup failed: ' + error.message);
-            console.error('setupWizardFileUpload error:', error);
+            console.error('setupSimpleFileUpload error:', error);
         }
     }
 
@@ -181,6 +185,28 @@ class WizardController {
                 }
             });
         }
+        
+        // Avatar selector events
+        this.setupAvatarSelector();
+    }
+    
+    setupAvatarSelector() {
+        const avatarButtons = document.querySelectorAll('.avatar-btn');
+        avatarButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove selected class from all buttons
+                avatarButtons.forEach(btn => btn.classList.remove('selected'));
+                
+                // Add selected class to clicked button
+                button.classList.add('selected');
+                
+                // Update current avatar variables
+                this.currentAvatarName = button.dataset.name;
+                this.currentAvatarIcon = button.dataset.icon;
+                
+                console.log('Avatar selected:', this.currentAvatarName, this.currentAvatarIcon);
+            });
+        });
     }
 
     async createNewSession() {
@@ -571,7 +597,9 @@ class WizardController {
             sender: 'wizard',
             type: 'wizard',
             content: content,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            avatarName: this.currentAvatarName,
+            avatarIcon: this.currentAvatarIcon
         };
 
         // 注意：不需要手动添加到本地消息历史
@@ -964,7 +992,9 @@ class WizardController {
                 sender: 'wizard',
                 content: message.content,
                 type: 'ai_response',
-                sessionId: this.currentSessionId
+                sessionId: this.currentSessionId,
+                avatarName: message.avatarName,
+                avatarIcon: message.avatarIcon
             };
             
             console.log('准备发送的消息数据:', messageData);
@@ -1995,6 +2025,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     debugLog('WizardController实例已创建');
     await window.wizardController.init();
     debugLog('WizardController初始化完成');
+    
+    // Hide loading overlay
+    const loadingOverlay = document.getElementById('loading-overlay');
+    if (loadingOverlay) {
+        loadingOverlay.classList.add('hidden');
+        setTimeout(() => {
+            loadingOverlay.style.display = 'none';
+        }, 300);
+    }
     
     // 验证关键元素是否存在
      const fileInput = document.getElementById('wizard-file-input');

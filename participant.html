@@ -7,14 +7,20 @@
     <link rel="stylesheet" href="participant-styles.css">
     
     <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js" defer></script>
     
     <!-- Firebase Configuration -->
-    <script src="firebase-config.js"></script>
-    <script src="firebase-comm.js"></script>
+    <script src="firebase-config.js" defer></script>
+    <script src="firebase-comm.js" defer></script>
 </head>
 <body>
+    <!-- Loading Indicator -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Loading Participant Interface...</div>
+    </div>
+    
     <!-- 会话加入界面 -->
     <div id="session-join-container" class="session-join-container">
         <div class="join-form">
@@ -325,11 +331,11 @@
         </div>
     </div>
     
-    <script src="indexeddb-storage.js"></script>
-    <script src="hybrid-storage.js"></script>
-    <script src="storage-monitor.js"></script>
-    <script src="large-file-handler.js"></script>
-    <script src="communication.js"></script>
-    <script src="participant-script.js"></script>
+    <script src="indexeddb-storage.js" defer></script>
+    <script src="hybrid-storage.js" defer></script>
+    <script src="storage-monitor.js" defer></script>
+    <script src="large-file-handler.js" defer></script>
+    <script src="communication.js" defer></script>
+    <script src="participant-script.js" defer></script>
 </body>
 </html>
